@@ -25,7 +25,7 @@ class UnionRideApp extends StatelessWidget {
       title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
-      initialRoute: AppRoutes.register,
+      initialRoute: AppRoutes.login,
       routes: AppRoutes.routes,
     );
   }

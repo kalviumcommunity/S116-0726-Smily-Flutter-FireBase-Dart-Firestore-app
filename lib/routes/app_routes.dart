@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../features/auth/screens/register_screen.dart';
+import '../features/auth/screens/login_screen.dart';
 import '../core/theme/app_theme.dart';
 
 class AppRoutes {
@@ -11,9 +12,9 @@ class AppRoutes {
   static Map<String, WidgetBuilder> get routes {
     return {
       register: (context) => const RegisterScreen(),
-      login: (context) => const PlaceholderScreen(title: 'Log In Screen', nextRoute: register, nextText: 'Go to Registration'),
-      passengerHome: (context) => const PlaceholderScreen(title: 'Passenger Home', nextRoute: register, nextText: 'Back to Register'),
-      driverDashboard: (context) => const PlaceholderScreen(title: 'Driver Dashboard', nextRoute: register, nextText: 'Back to Register'),
+      login: (context) => const LoginScreen(),
+      passengerHome: (context) => const PlaceholderScreen(title: 'Passenger Home', nextRoute: login, nextText: 'Log Out'),
+      driverDashboard: (context) => const PlaceholderScreen(title: 'Driver Dashboard', nextRoute: login, nextText: 'Log Out'),
     };
   }
 }
