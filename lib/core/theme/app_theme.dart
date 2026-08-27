@@ -31,25 +31,24 @@ class AppTheme {
         primary: primaryAmber,
         secondary: secondaryBlue,
         surface: cardDark,
-        background: bgDark,
         error: errorRed,
       ),
       textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme).copyWith(
-        displayLarge: TextStyle(
+        displayLarge: const TextStyle(
           fontSize: 32,
           fontWeight: FontWeight.bold,
           color: textPrimaryLight,
         ),
-        titleLarge: TextStyle(
+        titleLarge: const TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.w600,
           color: textPrimaryLight,
         ),
-        bodyLarge: TextStyle(
+        bodyLarge: const TextStyle(
           fontSize: 16,
           color: textPrimaryLight,
         ),
-        bodyMedium: TextStyle(
+        bodyMedium: const TextStyle(
           fontSize: 14,
           color: textSecondaryLight,
         ),
@@ -62,11 +61,11 @@ class AppTheme {
         labelStyle: const TextStyle(color: textSecondaryLight, fontSize: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: surfaceDark, width: 1.5),
+          borderSide: const BorderSide(color: surfaceDark, width: 1.5),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: surfaceDark, width: 1.5),
+          borderSide: const BorderSide(color: surfaceDark, width: 1.5),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -96,12 +95,12 @@ class AppTheme {
           ),
         ),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: cardDark,
         elevation: 6,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: surfaceDark.withOpacity(0.5)),
+          side: BorderSide(color: surfaceDark.withValues(alpha: 0.5)),
         ),
       ),
     );

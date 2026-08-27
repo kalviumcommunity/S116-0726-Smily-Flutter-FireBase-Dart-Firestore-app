@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'app_router.dart';
-import 'app_theme.dart';
+
+import '../core/theme/app_theme.dart';
+import '../routes/app_routes.dart';
+import '../routes/app_router.dart';
 
 class UnionRideApp extends StatelessWidget {
   const UnionRideApp({super.key});
@@ -10,8 +12,8 @@ class UnionRideApp extends StatelessWidget {
     return MaterialApp(
       title: 'UnionRide',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      initialRoute: '/',
+      theme: AppTheme.darkTheme,
+      initialRoute: AppRoutes.splash,
       onGenerateRoute: AppRouter.generateRoute,
     );
   }

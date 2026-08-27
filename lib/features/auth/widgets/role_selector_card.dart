@@ -7,10 +7,10 @@ class RoleSelectorCard extends StatelessWidget {
   final ValueChanged<String> onRoleSelected;
 
   const RoleSelectorCard({
-    Key? key,
+    super.key,
     required this.selectedRole,
     required this.onRoleSelected,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +69,7 @@ class RoleSelectorCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppTheme.primaryAmber.withOpacity(0.12)
+              ? AppTheme.primaryAmber.withValues(alpha: 0.12)
               : AppTheme.cardDark,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
@@ -79,7 +79,7 @@ class RoleSelectorCard extends StatelessWidget {
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: AppTheme.primaryAmber.withOpacity(0.25),
+                    color: AppTheme.primaryAmber.withValues(alpha: 0.25),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   )

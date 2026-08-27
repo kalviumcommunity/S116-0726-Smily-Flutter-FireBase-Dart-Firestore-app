@@ -1,20 +1,39 @@
 import 'package:flutter/material.dart';
-import '../features/auth/screens/register_screen.dart';
+import '../features/auth/screens/splash_screen.dart';
+import '../features/auth/screens/role_selection_screen.dart';
 import '../features/auth/screens/login_screen.dart';
+import '../features/auth/screens/forgot_password_screen.dart';
+import '../features/auth/screens/reset_password_screen.dart';
 import '../core/theme/app_theme.dart';
 
 class AppRoutes {
-  static const String register = '/register';
+  static const String splash = '/';
+  static const String roleSelection = '/role-selection';
   static const String login = '/login';
+  static const String riderRegister = '/rider-register';
+  static const String driverRegister = '/driver-register';
+  static const String forgotPassword = '/forgot-password';
+  static const String resetPassword = '/reset-password';
   static const String passengerHome = '/passenger-home';
   static const String driverDashboard = '/driver-dashboard';
 
   static Map<String, WidgetBuilder> get routes {
     return {
-      register: (context) => const RegisterScreen(),
+      splash: (context) => const SplashScreen(),
+      roleSelection: (context) => const RoleSelectionScreen(),
       login: (context) => const LoginScreen(),
-      passengerHome: (context) => const PlaceholderScreen(title: 'Passenger Home', nextRoute: login, nextText: 'Log Out'),
-      driverDashboard: (context) => const PlaceholderScreen(title: 'Driver Dashboard', nextRoute: login, nextText: 'Log Out'),
+      forgotPassword: (context) => const ForgotPasswordScreen(),
+      resetPassword: (context) => const ResetPasswordScreen(),
+      passengerHome: (context) => const PlaceholderScreen(
+            title: 'Passenger Home',
+            nextRoute: login,
+            nextText: 'Log Out',
+          ),
+      driverDashboard: (context) => const PlaceholderScreen(
+            title: 'Driver Dashboard',
+            nextRoute: login,
+            nextText: 'Log Out',
+          ),
     };
   }
 }
@@ -25,11 +44,11 @@ class PlaceholderScreen extends StatelessWidget {
   final String nextText;
 
   const PlaceholderScreen({
-    Key? key,
+    super.key,
     required this.title,
     required this.nextRoute,
     required this.nextText,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
