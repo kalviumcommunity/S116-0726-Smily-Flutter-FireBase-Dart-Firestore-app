@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
-import '../../../app/app_routes.dart';
+import '../../../routes/app_routes.dart';
+import '../../../services/auth_service.dart';
+import '../../../core/constants/app_constants.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -72,8 +74,31 @@ class _SplashScreenState extends State<SplashScreen>
 
     _logoController.forward();
 
-    Timer(const Duration(milliseconds: 2800), () {
+    Timer(const Duration(milliseconds: 2800), () async {
       if (!mounted) return;
+
+      final authService = AuthService();
+      final currentUser = authService.currentUser;
+
+      if (currentUser != null) {
+        final profile = await authService.getUserProfile(currentUser.uid);
+        if (!mounted) return;
+        if (profile != null && profile.isActive) {
+          if (profile.role == AppConstants.roleDriver) {
+            Navigator.pushReplacementNamed(
+              context,
+              AppRoutes.driverDashboard,
+            );
+            return;
+          } else {
+            Navigator.pushReplacementNamed(
+              context,
+              AppRoutes.passengerHome,
+            );
+            return;
+          }
+        }
+      }
 
       Navigator.pushReplacementNamed(
         context,

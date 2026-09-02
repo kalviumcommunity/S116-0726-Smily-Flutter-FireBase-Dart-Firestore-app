@@ -33,7 +33,7 @@ class UserModel {
     };
   }
 
-  factory UserModel.fromMap(Map<String, dynamic> map, String uid) {
+  factory UserModel.fromMap(Map<String, dynamic> map, String uid, {DriverDetails? driverDetails}) {
     return UserModel(
       uid: uid,
       fullName: map['fullName'] ?? '',
@@ -42,6 +42,7 @@ class UserModel {
       role: map['role'] ?? 'passenger',
       isActive: map['isActive'] ?? true,
       createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      driverDetails: driverDetails,
     );
   }
 }
@@ -56,7 +57,7 @@ class DriverDetails {
   final String? currentZone;
 
   DriverDetails({
-    required this.uid,
+    this.uid = '',
     required this.vehicleType,
     required this.vehicleRegistrationNumber,
     required this.unionPermitNumber,

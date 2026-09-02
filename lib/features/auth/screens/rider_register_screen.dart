@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../routes/app_routes.dart';
+import '../../../services/auth_service.dart';
+import '../../../core/constants/app_constants.dart';
 
 class RiderRegisterScreen extends StatefulWidget {
   const RiderRegisterScreen({super.key});
@@ -10,6 +12,7 @@ class RiderRegisterScreen extends StatefulWidget {
 }
 
 class _RiderRegisterScreenState extends State<RiderRegisterScreen> {
+  final AuthService _authService = AuthService();
   final _formKey = GlobalKey<FormState>();
 
   final _nameController = TextEditingController();
@@ -49,19 +52,31 @@ class _RiderRegisterScreenState extends State<RiderRegisterScreen> {
       _isCreatingAccount = true;
     });
 
-    // Frontend-only for now.
-    await Future.delayed(const Duration(milliseconds: 700));
+    try {
+      await _authService.registerUser(
+        fullName: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        phoneNumber: _phoneController.text.trim(),
+        password: _passwordController.text.trim(),
+        role: AppConstants.rolePassenger,
+      );
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    setState(() {
-      _isCreatingAccount = false;
-    });
-
-    Navigator.pushReplacementNamed(
-      context,
-      AppRoutes.passengerHome,
-    );
+      Navigator.pushReplacementNamed(
+        context,
+        AppRoutes.passengerHome,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      _showMessage(e.toString());
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isCreatingAccount = false;
+        });
+      }
+    }
   }
 
   void _showMessage(String message) {
