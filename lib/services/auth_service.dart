@@ -129,7 +129,7 @@ class AuthService {
         }
       }
 
-      return UserModel.fromMap(userData, uid);
+      return UserModel.fromMap(userData, uid, driverDetails: driverDetails);
     } catch (e) {
       return null;
     }

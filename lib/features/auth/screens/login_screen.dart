@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../routes/app_routes.dart';
+import '../../../services/auth_service.dart';
+import '../../../core/constants/app_constants.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -9,10 +11,73 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final AuthService _authService = AuthService();
+
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   bool _obscurePassword = true;
+  bool _isLoading = false;
+
+  void _handleLogin() async {
+    FocusScope.of(context).unfocus();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      _showMessage('Please enter both email and password.');
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final user = await _authService.loginUser(
+        email: email,
+        password: password,
+      );
+
+      if (!mounted) return;
+
+      if (user.role == AppConstants.roleDriver) {
+        Navigator.pushReplacementNamed(
+          context,
+          AppRoutes.driverDashboard,
+        );
+      } else {
+        Navigator.pushReplacementNamed(
+          context,
+          AppRoutes.passengerHome,
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      _showMessage(e.toString());
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: const Color(0xFFE53935),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+  }
 
   @override
   void dispose() {
@@ -253,12 +318,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         width: double.infinity,
                         height: 68,
                         child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pushReplacementNamed(
-                              context,
-                              AppRoutes.passengerHome,
-                            );
-                          },
+                          onPressed: _isLoading ? null : _handleLogin,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white,
                             foregroundColor: Colors.black,
@@ -267,23 +327,32 @@ class _LoginScreenState extends State<LoginScreen> {
                               borderRadius: BorderRadius.circular(18),
                             ),
                           ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Log In',
-                                style: TextStyle(
-                                  fontSize: 21,
-                                  fontWeight: FontWeight.w600,
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 26,
+                                  height: 26,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    color: Colors.black,
+                                  ),
+                                )
+                              : const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      'Log In',
+                                      style: TextStyle(
+                                        fontSize: 21,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    SizedBox(width: 12),
+                                    Icon(
+                                      Icons.arrow_forward_ios_rounded,
+                                      size: 20,
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              SizedBox(width: 12),
-                              Icon(
-                                Icons.arrow_forward_ios_rounded,
-                                size: 20,
-                              ),
-                            ],
-                          ),
                         ),
                       ),
 

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../routes/app_routes.dart';
+import '../../../services/auth_service.dart';
+import '../../../models/user_model.dart';
+import '../../../core/constants/app_constants.dart';
 
 class DriverRegisterScreen extends StatefulWidget {
   const DriverRegisterScreen({super.key});
@@ -10,6 +13,7 @@ class DriverRegisterScreen extends StatefulWidget {
 }
 
 class _DriverRegisterScreenState extends State<DriverRegisterScreen> {
+  final AuthService _authService = AuthService();
   final _formKey = GlobalKey<FormState>();
 
   final _nameController = TextEditingController();
@@ -55,19 +59,40 @@ class _DriverRegisterScreenState extends State<DriverRegisterScreen> {
       _isCreatingAccount = true;
     });
 
-    // Frontend-only for now.
-    await Future.delayed(const Duration(milliseconds: 700));
+    try {
+      final driverDetails = DriverDetails(
+        vehicleType: _vehicleTypeController.text.trim().isEmpty
+            ? 'Auto'
+            : _vehicleTypeController.text.trim(),
+        vehicleRegistrationNumber: _vehicleRegistrationController.text.trim(),
+        unionPermitNumber: _unionPermitController.text.trim(),
+      );
 
-    if (!mounted) return;
+      await _authService.registerUser(
+        fullName: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        phoneNumber: _phoneController.text.trim(),
+        password: _passwordController.text.trim(),
+        role: AppConstants.roleDriver,
+        driverDetails: driverDetails,
+      );
 
-    setState(() {
-      _isCreatingAccount = false;
-    });
+      if (!mounted) return;
 
-    Navigator.pushReplacementNamed(
-      context,
-      AppRoutes.driverDashboard,
-    );
+      Navigator.pushReplacementNamed(
+        context,
+        AppRoutes.driverDashboard,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      _showMessage(e.toString());
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isCreatingAccount = false;
+        });
+      }
+    }
   }
 
   void _showMessage(String message) {

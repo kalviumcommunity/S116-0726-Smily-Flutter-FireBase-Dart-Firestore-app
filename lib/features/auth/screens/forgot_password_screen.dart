@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../services/auth_service.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -9,8 +10,64 @@ class ForgotPasswordScreen extends StatefulWidget {
 }
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
-  final TextEditingController _emailController =
-      TextEditingController();
+  final AuthService _authService = AuthService();
+  final TextEditingController _emailController = TextEditingController();
+
+  bool _isLoading = false;
+
+  void _sendResetLink() async {
+    FocusScope.of(context).unfocus();
+    final email = _emailController.text.trim();
+
+    if (email.isEmpty) {
+      _showMessage('Please enter your email address.', isError: true);
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await _authService.sendPasswordResetEmail(email);
+
+      if (!mounted) return;
+
+      _showMessage(
+        'Password reset link sent! Check your inbox.',
+        isError: false,
+      );
+
+      await Future.delayed(const Duration(seconds: 2));
+      if (!mounted) return;
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+      _showMessage(e.toString(), isError: true);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _showMessage(String message, {bool isError = true}) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor:
+              isError ? const Color(0xFFE53935) : const Color(0xFF43A047),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+  }
 
   @override
   void dispose() {
@@ -208,9 +265,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       width: double.infinity,
                       height: 66,
                       child: ElevatedButton(
-                        onPressed: () {
-                          // Password reset functionality later
-                        },
+                        onPressed: _isLoading ? null : _sendResetLink,
                         style: ElevatedButton.styleFrom(
                           backgroundColor:
                               const Color(0xFFF1F1F3),
@@ -222,24 +277,33 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                 BorderRadius.circular(18),
                           ),
                         ),
-                        child: const Row(
-                          mainAxisAlignment:
-                              MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Send Reset Link',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w600,
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  color: Color(0xFF111214),
+                                ),
+                              )
+                            : const Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Send Reset Link',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  SizedBox(width: 14),
+                                  Icon(
+                                    Icons.arrow_forward_rounded,
+                                    size: 25,
+                                  ),
+                                ],
                               ),
-                            ),
-                            SizedBox(width: 14),
-                            Icon(
-                              Icons.arrow_forward_rounded,
-                              size: 25,
-                            ),
-                          ],
-                        ),
                       ),
                     ),
 
