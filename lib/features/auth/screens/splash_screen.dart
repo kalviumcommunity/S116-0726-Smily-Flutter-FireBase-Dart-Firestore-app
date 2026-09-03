@@ -1,9 +1,8 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../routes/app_routes.dart';
-import '../../../services/auth_service.dart';
-import '../../../core/constants/app_constants.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -74,31 +73,10 @@ class _SplashScreenState extends State<SplashScreen>
 
     _logoController.forward();
 
-    Timer(const Duration(milliseconds: 2800), () async {
+    // Frontend-only splash flow.
+    // Firebase authentication will be connected later.
+    Timer(const Duration(milliseconds: 2800), () {
       if (!mounted) return;
-
-      final authService = AuthService();
-      final currentUser = authService.currentUser;
-
-      if (currentUser != null) {
-        final profile = await authService.getUserProfile(currentUser.uid);
-        if (!mounted) return;
-        if (profile != null && profile.isActive) {
-          if (profile.role == AppConstants.roleDriver) {
-            Navigator.pushReplacementNamed(
-              context,
-              AppRoutes.driverDashboard,
-            );
-            return;
-          } else {
-            Navigator.pushReplacementNamed(
-              context,
-              AppRoutes.passengerHome,
-            );
-            return;
-          }
-        }
-      }
 
       Navigator.pushReplacementNamed(
         context,
@@ -133,7 +111,7 @@ class _SplashScreenState extends State<SplashScreen>
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      Colors.white.withOpacity(0.035),
+                      Colors.white.withValues(alpha: 0.035),
                       Colors.transparent,
                     ],
                   ),
@@ -161,7 +139,7 @@ class _SplashScreenState extends State<SplashScreen>
                       const SizedBox(height: 24),
 
                       // App name
-                      Text(
+                      const Text(
                         'UnionRide',
                         style: TextStyle(
                           color: Colors.white,
@@ -175,10 +153,10 @@ class _SplashScreenState extends State<SplashScreen>
 
                       FadeTransition(
                         opacity: _contentFade,
-                        child: Text(
+                        child: const Text(
                           'MOVE TOGETHER.',
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.55),
+                            color: Color.fromRGBO(255, 255, 255, 0.55),
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
                             letterSpacing: 4,
@@ -222,26 +200,25 @@ class _SplashScreenState extends State<SplashScreen>
                   children: [
                     RotationTransition(
                       turns: _loaderController,
-                      child: SizedBox(
+                      child: const SizedBox(
                         height: 28,
                         width: 28,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white.withOpacity(0.85),
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(
+                            Color.fromRGBO(255, 255, 255, 0.85),
                           ),
                           backgroundColor:
-                              Colors.white.withOpacity(0.08),
+                              Color.fromRGBO(255, 255, 255, 0.08),
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 14),
-
-                    Text(
+                    const Text(
                       'LOADING',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.45),
+                        color: Color.fromRGBO(255, 255, 255, 0.45),
                         fontSize: 9,
                         fontWeight: FontWeight.w500,
                         letterSpacing: 3.5,
@@ -257,7 +234,6 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 }
-
 
 // =====================================================
 // UNIONRIDE LOGO MARK
@@ -277,7 +253,6 @@ class _UnionRideLogo extends StatelessWidget {
     );
   }
 }
-
 
 // =====================================================
 // LOGO PAINTER
@@ -300,7 +275,10 @@ class _LogoPainter extends CustomPainter {
     // Main connected rounded shape
     final path = Path();
 
-    path.moveTo(size.width * 0.30, size.height * 0.20);
+    path.moveTo(
+      size.width * 0.30,
+      size.height * 0.20,
+    );
 
     path.quadraticBezierTo(
       size.width * 0.42,
@@ -309,7 +287,10 @@ class _LogoPainter extends CustomPainter {
       size.height * 0.25,
     );
 
-    path.lineTo(size.width * 0.68, size.height * 0.52);
+    path.lineTo(
+      size.width * 0.68,
+      size.height * 0.52,
+    );
 
     path.quadraticBezierTo(
       size.width * 0.76,
@@ -339,7 +320,10 @@ class _LogoPainter extends CustomPainter {
       size.height * 0.70,
     );
 
-    path.lineTo(size.width * 0.48, size.height * 0.48);
+    path.lineTo(
+      size.width * 0.48,
+      size.height * 0.48,
+    );
 
     path.quadraticBezierTo(
       size.width * 0.43,
@@ -357,7 +341,6 @@ class _LogoPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-
 // =====================================================
 // ROUTE ANIMATION
 // =====================================================
@@ -372,13 +355,16 @@ class _RoutePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final routePaint = Paint()
-      ..color = Colors.white.withOpacity(0.82)
+      ..color = const Color.fromRGBO(255, 255, 255, 0.82)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2
       ..strokeCap = StrokeCap.round;
 
     final path = Path()
-      ..moveTo(size.width * 0.12, size.height * 0.85)
+      ..moveTo(
+        size.width * 0.12,
+        size.height * 0.85,
+      )
       ..cubicTo(
         size.width * 0.25,
         size.height * 0.72,
@@ -405,7 +391,7 @@ class _RoutePainter extends CustomPainter {
 
     // Soft glow
     final glowPaint = Paint()
-      ..color = Colors.white.withOpacity(0.12)
+      ..color = const Color.fromRGBO(255, 255, 255, 0.12)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 9
       ..strokeCap = StrokeCap.round;
@@ -415,20 +401,25 @@ class _RoutePainter extends CustomPainter {
 
     // Start point
     canvas.drawCircle(
-      Offset(size.width * 0.12, size.height * 0.85),
+      Offset(
+        size.width * 0.12,
+        size.height * 0.85,
+      ),
       7,
       Paint()..color = Colors.white,
     );
 
     // Destination
-    final destination =
-        Offset(size.width * 0.88, size.height * 0.18);
+    final destination = Offset(
+      size.width * 0.88,
+      size.height * 0.18,
+    );
 
     canvas.drawCircle(
       destination,
       17,
       Paint()
-        ..color = Colors.white.withOpacity(0.08),
+        ..color = const Color.fromRGBO(255, 255, 255, 0.08),
     );
 
     canvas.drawCircle(
@@ -443,7 +434,6 @@ class _RoutePainter extends CustomPainter {
     return oldDelegate.progress != progress;
   }
 }
-
 
 // =====================================================
 // SUBTLE MAP BACKGROUND
@@ -460,12 +450,11 @@ class _MapBackground extends StatelessWidget {
   }
 }
 
-
 class _MapPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white.withOpacity(0.025)
+      ..color = const Color.fromRGBO(255, 255, 255, 0.025)
       ..strokeWidth = 1;
 
     final startY = size.height * 0.56;
@@ -481,7 +470,10 @@ class _MapPainter extends CustomPainter {
     for (double x = -size.width; x < size.width * 2; x += 65) {
       canvas.drawLine(
         Offset(x, size.height),
-        Offset(x + size.width * 0.45, startY),
+        Offset(
+          x + size.width * 0.45,
+          startY,
+        ),
         paint,
       );
     }

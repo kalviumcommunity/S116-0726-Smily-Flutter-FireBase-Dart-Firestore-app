@@ -7,6 +7,12 @@ import '../features/auth/screens/reset_password_screen.dart';
 import '../features/auth/screens/rider_register_screen.dart';
 import '../features/auth/screens/role_selection_screen.dart';
 import '../features/auth/screens/splash_screen.dart';
+import '../features/passenger/screens/my_rides_screen.dart';
+import '../features/passenger/screens/passenger_home_screen.dart';
+import '../features/passenger/screens/ride_details_screen.dart';
+import '../features/passenger/screens/ride_results_screen.dart';
+import '../features/passenger/screens/rider_profile_screen.dart';
+import '../features/passenger/screens/search_ride_screen.dart';
 import '../routes/app_routes.dart';
 
 class AppRouter {
@@ -51,9 +57,32 @@ class AppRouter {
 
       case AppRoutes.passengerHome:
         return MaterialPageRoute(
-          builder: (_) => const _ComingSoonScreen(
-            title: 'Passenger Home',
-          ),
+          builder: (_) => const PassengerHomeScreen(),
+        );
+
+      case AppRoutes.searchRide:
+        return MaterialPageRoute(
+          builder: (_) => const SearchRideScreen(),
+        );
+
+      case AppRoutes.rideResults:
+        return MaterialPageRoute(
+          builder: (_) => const RideResultsScreen(),
+        );
+
+      case AppRoutes.rideDetails:
+        return MaterialPageRoute(
+          builder: (_) => const RideDetailsScreen(),
+        );
+
+      case AppRoutes.myRides:
+        return MaterialPageRoute(
+          builder: (_) => const MyRidesScreen(),
+        );
+
+      case AppRoutes.riderProfile:
+        return MaterialPageRoute(
+          builder: (_) => const RiderProfileScreen(),
         );
 
       case AppRoutes.driverDashboard:

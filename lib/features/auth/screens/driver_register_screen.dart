@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
 
 import '../../../routes/app_routes.dart';
-import '../../../services/auth_service.dart';
-import '../../../models/user_model.dart';
-import '../../../core/constants/app_constants.dart';
 
 class DriverRegisterScreen extends StatefulWidget {
   const DriverRegisterScreen({super.key});
 
   @override
-  State<DriverRegisterScreen> createState() => _DriverRegisterScreenState();
+  State<DriverRegisterScreen> createState() =>
+      _DriverRegisterScreenState();
 }
 
-class _DriverRegisterScreenState extends State<DriverRegisterScreen> {
-  final AuthService _authService = AuthService();
+class _DriverRegisterScreenState
+    extends State<DriverRegisterScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final _nameController = TextEditingController();
@@ -22,7 +20,8 @@ class _DriverRegisterScreenState extends State<DriverRegisterScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _vehicleTypeController = TextEditingController();
-  final _vehicleRegistrationController = TextEditingController();
+  final _vehicleRegistrationController =
+      TextEditingController();
   final _unionPermitController = TextEditingController();
 
   bool _obscurePassword = true;
@@ -51,7 +50,9 @@ class _DriverRegisterScreenState extends State<DriverRegisterScreen> {
     }
 
     if (!_acceptedTerms) {
-      _showMessage('Please accept the Terms & Conditions.');
+      _showMessage(
+        'Please accept the Terms & Conditions.',
+      );
       return;
     }
 
@@ -59,40 +60,32 @@ class _DriverRegisterScreenState extends State<DriverRegisterScreen> {
       _isCreatingAccount = true;
     });
 
-    try {
-      final driverDetails = DriverDetails(
-        vehicleType: _vehicleTypeController.text.trim().isEmpty
-            ? 'Auto'
-            : _vehicleTypeController.text.trim(),
-        vehicleRegistrationNumber: _vehicleRegistrationController.text.trim(),
-        unionPermitNumber: _unionPermitController.text.trim(),
-      );
+    // Frontend-only registration flow.
+    // Firebase registration will be connected later.
+    await Future.delayed(
+      const Duration(milliseconds: 800),
+    );
 
-      await _authService.registerUser(
-        fullName: _nameController.text.trim(),
-        email: _emailController.text.trim(),
-        phoneNumber: _phoneController.text.trim(),
-        password: _passwordController.text.trim(),
-        role: AppConstants.roleDriver,
-        driverDetails: driverDetails,
-      );
+    if (!mounted) return;
 
-      if (!mounted) return;
+    setState(() {
+      _isCreatingAccount = false;
+    });
 
-      Navigator.pushReplacementNamed(
-        context,
-        AppRoutes.driverDashboard,
-      );
-    } catch (e) {
-      if (!mounted) return;
-      _showMessage(e.toString());
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isCreatingAccount = false;
-        });
-      }
-    }
+    _showMessage(
+      'Driver account created successfully!',
+    );
+
+    await Future.delayed(
+      const Duration(milliseconds: 700),
+    );
+
+    if (!mounted) return;
+
+    Navigator.pushReplacementNamed(
+      context,
+      AppRoutes.driverDashboard,
+    );
   }
 
   void _showMessage(String message) {
@@ -110,7 +103,10 @@ class _DriverRegisterScreenState extends State<DriverRegisterScreen> {
       );
   }
 
-  String? _requiredValidator(String? value, String message) {
+  String? _requiredValidator(
+    String? value,
+    String message,
+  ) {
     if (value == null || value.trim().isEmpty) {
       return message;
     }
@@ -177,7 +173,12 @@ class _DriverRegisterScreenState extends State<DriverRegisterScreen> {
           key: _formKey,
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+            padding: const EdgeInsets.fromLTRB(
+              24,
+              20,
+              24,
+              32,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -215,7 +216,8 @@ class _DriverRegisterScreenState extends State<DriverRegisterScreen> {
                     width: 145,
                     height: 62,
                     fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
+                    errorBuilder:
+                        (context, error, stackTrace) {
                       return const Text(
                         'UnionRide',
                         style: TextStyle(
@@ -270,7 +272,9 @@ class _DriverRegisterScreenState extends State<DriverRegisterScreen> {
 
                 const SizedBox(height: 18),
 
-                _FieldLabel(label: 'Full Name'),
+                const _FieldLabel(
+                  label: 'Full Name',
+                ),
 
                 const SizedBox(height: 10),
 
@@ -278,8 +282,10 @@ class _DriverRegisterScreenState extends State<DriverRegisterScreen> {
                   controller: _nameController,
                   hint: 'Enter your full name',
                   icon: Icons.person_outline_rounded,
-                  textCapitalization: TextCapitalization.words,
-                  validator: (value) => _requiredValidator(
+                  textCapitalization:
+                      TextCapitalization.words,
+                  validator: (value) =>
+                      _requiredValidator(
                     value,
                     'Please enter your full name',
                   ),
@@ -287,7 +293,9 @@ class _DriverRegisterScreenState extends State<DriverRegisterScreen> {
 
                 const SizedBox(height: 22),
 
-                _FieldLabel(label: 'Email Address'),
+                const _FieldLabel(
+                  label: 'Email Address',
+                ),
 
                 const SizedBox(height: 10),
 
@@ -295,13 +303,16 @@ class _DriverRegisterScreenState extends State<DriverRegisterScreen> {
                   controller: _emailController,
                   hint: 'Enter your email',
                   icon: Icons.email_outlined,
-                  keyboardType: TextInputType.emailAddress,
+                  keyboardType:
+                      TextInputType.emailAddress,
                   validator: _emailValidator,
                 ),
 
                 const SizedBox(height: 22),
 
-                _FieldLabel(label: 'Phone Number'),
+                const _FieldLabel(
+                  label: 'Phone Number',
+                ),
 
                 const SizedBox(height: 10),
 
@@ -316,7 +327,7 @@ class _DriverRegisterScreenState extends State<DriverRegisterScreen> {
                 const SizedBox(height: 30),
 
                 // =========================
-                // PASSWORD
+                // ACCOUNT SECURITY
                 // =========================
                 const _SectionTitle(
                   title: 'Account security',
@@ -324,7 +335,9 @@ class _DriverRegisterScreenState extends State<DriverRegisterScreen> {
 
                 const SizedBox(height: 18),
 
-                _FieldLabel(label: 'Password'),
+                const _FieldLabel(
+                  label: 'Password',
+                ),
 
                 const SizedBox(height: 10),
 
@@ -337,7 +350,8 @@ class _DriverRegisterScreenState extends State<DriverRegisterScreen> {
                   suffixIcon: IconButton(
                     onPressed: () {
                       setState(() {
-                        _obscurePassword = !_obscurePassword;
+                        _obscurePassword =
+                            !_obscurePassword;
                       });
                     },
                     icon: Icon(
@@ -352,16 +366,21 @@ class _DriverRegisterScreenState extends State<DriverRegisterScreen> {
 
                 const SizedBox(height: 22),
 
-                _FieldLabel(label: 'Confirm Password'),
+                const _FieldLabel(
+                  label: 'Confirm Password',
+                ),
 
                 const SizedBox(height: 10),
 
                 _RegisterField(
-                  controller: _confirmPasswordController,
+                  controller:
+                      _confirmPasswordController,
                   hint: 'Confirm your password',
                   icon: Icons.lock_outline_rounded,
-                  obscureText: _obscureConfirmPassword,
-                  validator: _confirmPasswordValidator,
+                  obscureText:
+                      _obscureConfirmPassword,
+                  validator:
+                      _confirmPasswordValidator,
                   suffixIcon: IconButton(
                     onPressed: () {
                       setState(() {
@@ -390,7 +409,9 @@ class _DriverRegisterScreenState extends State<DriverRegisterScreen> {
 
                 const SizedBox(height: 18),
 
-                _FieldLabel(label: 'Vehicle Type'),
+                const _FieldLabel(
+                  label: 'Vehicle Type',
+                ),
 
                 const SizedBox(height: 10),
 
@@ -398,8 +419,10 @@ class _DriverRegisterScreenState extends State<DriverRegisterScreen> {
                   controller: _vehicleTypeController,
                   hint: 'e.g. Sedan, SUV, Hatchback',
                   icon: Icons.directions_car_outlined,
-                  textCapitalization: TextCapitalization.words,
-                  validator: (value) => _requiredValidator(
+                  textCapitalization:
+                      TextCapitalization.words,
+                  validator: (value) =>
+                      _requiredValidator(
                     value,
                     'Please enter your vehicle type',
                   ),
@@ -407,16 +430,21 @@ class _DriverRegisterScreenState extends State<DriverRegisterScreen> {
 
                 const SizedBox(height: 22),
 
-                _FieldLabel(label: 'Vehicle Registration'),
+                const _FieldLabel(
+                  label: 'Vehicle Registration',
+                ),
 
                 const SizedBox(height: 10),
 
                 _RegisterField(
-                  controller: _vehicleRegistrationController,
+                  controller:
+                      _vehicleRegistrationController,
                   hint: 'Enter vehicle registration number',
                   icon: Icons.confirmation_number_outlined,
-                  textCapitalization: TextCapitalization.characters,
-                  validator: (value) => _requiredValidator(
+                  textCapitalization:
+                      TextCapitalization.characters,
+                  validator: (value) =>
+                      _requiredValidator(
                     value,
                     'Please enter vehicle registration',
                   ),
@@ -424,7 +452,9 @@ class _DriverRegisterScreenState extends State<DriverRegisterScreen> {
 
                 const SizedBox(height: 22),
 
-                _FieldLabel(label: 'Union Permit'),
+                const _FieldLabel(
+                  label: 'Union Permit',
+                ),
 
                 const SizedBox(height: 10),
 
@@ -432,8 +462,10 @@ class _DriverRegisterScreenState extends State<DriverRegisterScreen> {
                   controller: _unionPermitController,
                   hint: 'Enter your union permit number',
                   icon: Icons.badge_outlined,
-                  textCapitalization: TextCapitalization.characters,
-                  validator: (value) => _requiredValidator(
+                  textCapitalization:
+                      TextCapitalization.characters,
+                  validator: (value) =>
+                      _requiredValidator(
                     value,
                     'Please enter your union permit',
                   ),
@@ -447,22 +479,29 @@ class _DriverRegisterScreenState extends State<DriverRegisterScreen> {
                 GestureDetector(
                   onTap: () {
                     setState(() {
-                      _acceptedTerms = !_acceptedTerms;
+                      _acceptedTerms =
+                          !_acceptedTerms;
                     });
                   },
                   child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
                     children: [
                       AnimatedContainer(
-                        duration: const Duration(milliseconds: 150),
+                        duration:
+                            const Duration(
+                          milliseconds: 150,
+                        ),
                         width: 22,
                         height: 22,
-                        margin: const EdgeInsets.only(top: 1),
+                        margin:
+                            const EdgeInsets.only(top: 1),
                         decoration: BoxDecoration(
                           color: _acceptedTerms
                               ? Colors.white
                               : Colors.transparent,
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius:
+                              BorderRadius.circular(6),
                           border: Border.all(
                             color: _acceptedTerms
                                 ? Colors.white
@@ -503,26 +542,33 @@ class _DriverRegisterScreenState extends State<DriverRegisterScreen> {
                   height: 62,
                   child: ElevatedButton(
                     onPressed:
-                        _isCreatingAccount ? null : _createAccount,
+                        _isCreatingAccount
+                            ? null
+                            : _createAccount,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
-                      disabledBackgroundColor: const Color(0xFF242424),
+                      disabledBackgroundColor:
+                          const Color(0xFF242424),
                       foregroundColor: Colors.black,
                       disabledForegroundColor:
                           const Color(0xFF777777),
                       elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
+                      shape:
+                          RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(18),
                       ),
                     ),
                     child: _isCreatingAccount
                         ? const SizedBox(
                             width: 23,
                             height: 23,
-                            child: CircularProgressIndicator(
+                            child:
+                                CircularProgressIndicator(
                               strokeWidth: 2.2,
                               valueColor:
-                                  AlwaysStoppedAnimation<Color>(
+                                  AlwaysStoppedAnimation<
+                                      Color>(
                                 Colors.black,
                               ),
                             ),
@@ -535,12 +581,14 @@ class _DriverRegisterScreenState extends State<DriverRegisterScreen> {
                                 'Create Account',
                                 style: TextStyle(
                                   fontSize: 18,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight:
+                                      FontWeight.w600,
                                 ),
                               ),
                               SizedBox(width: 12),
                               Icon(
-                                Icons.arrow_forward_ios_rounded,
+                                Icons
+                                    .arrow_forward_ios_rounded,
                                 size: 17,
                               ),
                             ],
@@ -554,7 +602,8 @@ class _DriverRegisterScreenState extends State<DriverRegisterScreen> {
                 // LOGIN
                 // =========================
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment:
+                      MainAxisAlignment.center,
                   children: [
                     const Text(
                       'Already have an account? ',
@@ -664,7 +713,8 @@ class _RegisterField extends StatelessWidget {
     this.obscureText = false,
     this.suffixIcon,
     this.validator,
-    this.textCapitalization = TextCapitalization.none,
+    this.textCapitalization =
+        TextCapitalization.none,
   });
 
   @override
@@ -694,7 +744,8 @@ class _RegisterField extends StatelessWidget {
         suffixIcon: suffixIcon,
         filled: true,
         fillColor: const Color(0xFF0C0D0F),
-        contentPadding: const EdgeInsets.symmetric(
+        contentPadding:
+            const EdgeInsets.symmetric(
           horizontal: 18,
           vertical: 19,
         ),
@@ -723,7 +774,8 @@ class _RegisterField extends StatelessWidget {
             width: 1.1,
           ),
         ),
-        focusedErrorBorder: OutlineInputBorder(
+        focusedErrorBorder:
+            OutlineInputBorder(
           borderRadius: BorderRadius.circular(17),
           borderSide: const BorderSide(
             color: Colors.white,

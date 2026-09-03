@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
+
 import '../../../routes/app_routes.dart';
-import '../../../services/auth_service.dart';
-import '../../../core/constants/app_constants.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -11,8 +10,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final AuthService _authService = AuthService();
-
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
@@ -21,6 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _handleLogin() async {
     FocusScope.of(context).unfocus();
+
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
@@ -33,35 +31,20 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = true;
     });
 
-    try {
-      final user = await _authService.loginUser(
-        email: email,
-        password: password,
-      );
+    // Frontend-only login for now.
+    // Firebase authentication will be connected later.
+    await Future.delayed(const Duration(milliseconds: 700));
 
-      if (!mounted) return;
+    if (!mounted) return;
 
-      if (user.role == AppConstants.roleDriver) {
-        Navigator.pushReplacementNamed(
-          context,
-          AppRoutes.driverDashboard,
-        );
-      } else {
-        Navigator.pushReplacementNamed(
-          context,
-          AppRoutes.passengerHome,
-        );
-      }
-    } catch (e) {
-      if (!mounted) return;
-      _showMessage(e.toString());
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
+    setState(() {
+      _isLoading = false;
+    });
+
+    Navigator.pushReplacementNamed(
+      context,
+      AppRoutes.passengerHome,
+    );
   }
 
   void _showMessage(String message) {
@@ -400,7 +383,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         width: double.infinity,
                         height: 66,
                         child: OutlinedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            _showMessage(
+                              'Google login will be available soon.',
+                            );
+                          },
                           style: OutlinedButton.styleFrom(
                             foregroundColor: Colors.white,
                             side: const BorderSide(

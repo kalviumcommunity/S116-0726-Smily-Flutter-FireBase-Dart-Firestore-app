@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 
 import '../../../routes/app_routes.dart';
-import '../../../services/auth_service.dart';
-import '../../../core/constants/app_constants.dart';
 
 class RiderRegisterScreen extends StatefulWidget {
   const RiderRegisterScreen({super.key});
 
   @override
-  State<RiderRegisterScreen> createState() => _RiderRegisterScreenState();
+  State<RiderRegisterScreen> createState() =>
+      _RiderRegisterScreenState();
 }
 
-class _RiderRegisterScreenState extends State<RiderRegisterScreen> {
-  final AuthService _authService = AuthService();
+class _RiderRegisterScreenState
+    extends State<RiderRegisterScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final _nameController = TextEditingController();
@@ -44,7 +43,9 @@ class _RiderRegisterScreenState extends State<RiderRegisterScreen> {
     }
 
     if (!_acceptedTerms) {
-      _showMessage('Please accept the Terms & Conditions.');
+      _showMessage(
+        'Please accept the Terms & Conditions.',
+      );
       return;
     }
 
@@ -52,31 +53,32 @@ class _RiderRegisterScreenState extends State<RiderRegisterScreen> {
       _isCreatingAccount = true;
     });
 
-    try {
-      await _authService.registerUser(
-        fullName: _nameController.text.trim(),
-        email: _emailController.text.trim(),
-        phoneNumber: _phoneController.text.trim(),
-        password: _passwordController.text.trim(),
-        role: AppConstants.rolePassenger,
-      );
+    // Frontend-only registration flow.
+    // Firebase registration will be connected later.
+    await Future.delayed(
+      const Duration(milliseconds: 800),
+    );
 
-      if (!mounted) return;
+    if (!mounted) return;
 
-      Navigator.pushReplacementNamed(
-        context,
-        AppRoutes.passengerHome,
-      );
-    } catch (e) {
-      if (!mounted) return;
-      _showMessage(e.toString());
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isCreatingAccount = false;
-        });
-      }
-    }
+    setState(() {
+      _isCreatingAccount = false;
+    });
+
+    _showMessage(
+      'Account created successfully!',
+    );
+
+    await Future.delayed(
+      const Duration(milliseconds: 700),
+    );
+
+    if (!mounted) return;
+
+    Navigator.pushReplacementNamed(
+      context,
+      AppRoutes.passengerHome,
+    );
   }
 
   void _showMessage(String message) {
@@ -94,7 +96,10 @@ class _RiderRegisterScreenState extends State<RiderRegisterScreen> {
       );
   }
 
-  String? _requiredValidator(String? value, String message) {
+  String? _requiredValidator(
+    String? value,
+    String message,
+  ) {
     if (value == null || value.trim().isEmpty) {
       return message;
     }
@@ -161,13 +166,16 @@ class _RiderRegisterScreenState extends State<RiderRegisterScreen> {
           key: _formKey,
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+            padding: const EdgeInsets.fromLTRB(
+              24,
+              20,
+              24,
+              32,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // =========================
                 // BACK BUTTON
-                // =========================
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
                   child: Container(
@@ -190,16 +198,15 @@ class _RiderRegisterScreenState extends State<RiderRegisterScreen> {
 
                 const SizedBox(height: 28),
 
-                // =========================
                 // LOGO
-                // =========================
                 Center(
                   child: Image.asset(
                     'assets/images/logo.png',
                     width: 145,
                     height: 62,
                     fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
+                    errorBuilder:
+                        (context, error, stackTrace) {
                       return const Text(
                         'UnionRide',
                         style: TextStyle(
@@ -214,9 +221,7 @@ class _RiderRegisterScreenState extends State<RiderRegisterScreen> {
 
                 const SizedBox(height: 28),
 
-                // =========================
                 // TITLE
-                // =========================
                 const Center(
                   child: Text(
                     'Create your account',
@@ -245,10 +250,10 @@ class _RiderRegisterScreenState extends State<RiderRegisterScreen> {
 
                 const SizedBox(height: 38),
 
-                // =========================
                 // FULL NAME
-                // =========================
-                _FieldLabel(label: 'Full Name'),
+                const _FieldLabel(
+                  label: 'Full Name',
+                ),
 
                 const SizedBox(height: 10),
 
@@ -256,8 +261,10 @@ class _RiderRegisterScreenState extends State<RiderRegisterScreen> {
                   controller: _nameController,
                   hint: 'Enter your full name',
                   icon: Icons.person_outline_rounded,
-                  textCapitalization: TextCapitalization.words,
-                  validator: (value) => _requiredValidator(
+                  textCapitalization:
+                      TextCapitalization.words,
+                  validator: (value) =>
+                      _requiredValidator(
                     value,
                     'Please enter your full name',
                   ),
@@ -265,10 +272,10 @@ class _RiderRegisterScreenState extends State<RiderRegisterScreen> {
 
                 const SizedBox(height: 22),
 
-                // =========================
                 // EMAIL
-                // =========================
-                _FieldLabel(label: 'Email Address'),
+                const _FieldLabel(
+                  label: 'Email Address',
+                ),
 
                 const SizedBox(height: 10),
 
@@ -276,16 +283,17 @@ class _RiderRegisterScreenState extends State<RiderRegisterScreen> {
                   controller: _emailController,
                   hint: 'Enter your email',
                   icon: Icons.email_outlined,
-                  keyboardType: TextInputType.emailAddress,
+                  keyboardType:
+                      TextInputType.emailAddress,
                   validator: _emailValidator,
                 ),
 
                 const SizedBox(height: 22),
 
-                // =========================
                 // PHONE
-                // =========================
-                _FieldLabel(label: 'Phone Number'),
+                const _FieldLabel(
+                  label: 'Phone Number',
+                ),
 
                 const SizedBox(height: 10),
 
@@ -299,10 +307,10 @@ class _RiderRegisterScreenState extends State<RiderRegisterScreen> {
 
                 const SizedBox(height: 22),
 
-                // =========================
                 // PASSWORD
-                // =========================
-                _FieldLabel(label: 'Password'),
+                const _FieldLabel(
+                  label: 'Password',
+                ),
 
                 const SizedBox(height: 10),
 
@@ -315,7 +323,8 @@ class _RiderRegisterScreenState extends State<RiderRegisterScreen> {
                   suffixIcon: IconButton(
                     onPressed: () {
                       setState(() {
-                        _obscurePassword = !_obscurePassword;
+                        _obscurePassword =
+                            !_obscurePassword;
                       });
                     },
                     icon: Icon(
@@ -330,19 +339,22 @@ class _RiderRegisterScreenState extends State<RiderRegisterScreen> {
 
                 const SizedBox(height: 22),
 
-                // =========================
                 // CONFIRM PASSWORD
-                // =========================
-                _FieldLabel(label: 'Confirm Password'),
+                const _FieldLabel(
+                  label: 'Confirm Password',
+                ),
 
                 const SizedBox(height: 10),
 
                 _RegisterField(
-                  controller: _confirmPasswordController,
+                  controller:
+                      _confirmPasswordController,
                   hint: 'Confirm your password',
                   icon: Icons.lock_outline_rounded,
-                  obscureText: _obscureConfirmPassword,
-                  validator: _confirmPasswordValidator,
+                  obscureText:
+                      _obscureConfirmPassword,
+                  validator:
+                      _confirmPasswordValidator,
                   suffixIcon: IconButton(
                     onPressed: () {
                       setState(() {
@@ -362,28 +374,33 @@ class _RiderRegisterScreenState extends State<RiderRegisterScreen> {
 
                 const SizedBox(height: 24),
 
-                // =========================
                 // TERMS
-                // =========================
                 GestureDetector(
                   onTap: () {
                     setState(() {
-                      _acceptedTerms = !_acceptedTerms;
+                      _acceptedTerms =
+                          !_acceptedTerms;
                     });
                   },
                   child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
                     children: [
                       AnimatedContainer(
-                        duration: const Duration(milliseconds: 150),
+                        duration:
+                            const Duration(
+                          milliseconds: 150,
+                        ),
                         width: 22,
                         height: 22,
-                        margin: const EdgeInsets.only(top: 1),
+                        margin:
+                            const EdgeInsets.only(top: 1),
                         decoration: BoxDecoration(
                           color: _acceptedTerms
                               ? Colors.white
                               : Colors.transparent,
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius:
+                              BorderRadius.circular(6),
                           border: Border.all(
                             color: _acceptedTerms
                                 ? Colors.white
@@ -416,9 +433,7 @@ class _RiderRegisterScreenState extends State<RiderRegisterScreen> {
 
                 const SizedBox(height: 30),
 
-                // =========================
                 // CREATE ACCOUNT
-                // =========================
                 SizedBox(
                   width: double.infinity,
                   height: 62,
@@ -428,23 +443,27 @@ class _RiderRegisterScreenState extends State<RiderRegisterScreen> {
                         : _createAccount,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
-                      disabledBackgroundColor: const Color(0xFF242424),
+                      disabledBackgroundColor:
+                          const Color(0xFF242424),
                       foregroundColor: Colors.black,
                       disabledForegroundColor:
                           const Color(0xFF777777),
                       elevation: 0,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
+                        borderRadius:
+                            BorderRadius.circular(18),
                       ),
                     ),
                     child: _isCreatingAccount
                         ? const SizedBox(
                             width: 23,
                             height: 23,
-                            child: CircularProgressIndicator(
+                            child:
+                                CircularProgressIndicator(
                               strokeWidth: 2.2,
                               valueColor:
-                                  AlwaysStoppedAnimation<Color>(
+                                  AlwaysStoppedAnimation<
+                                      Color>(
                                 Colors.black,
                               ),
                             ),
@@ -457,12 +476,14 @@ class _RiderRegisterScreenState extends State<RiderRegisterScreen> {
                                 'Create Account',
                                 style: TextStyle(
                                   fontSize: 18,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight:
+                                      FontWeight.w600,
                                 ),
                               ),
                               SizedBox(width: 12),
                               Icon(
-                                Icons.arrow_forward_ios_rounded,
+                                Icons
+                                    .arrow_forward_ios_rounded,
                                 size: 17,
                               ),
                             ],
@@ -472,11 +493,10 @@ class _RiderRegisterScreenState extends State<RiderRegisterScreen> {
 
                 const SizedBox(height: 26),
 
-                // =========================
                 // LOGIN
-                // =========================
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment:
+                      MainAxisAlignment.center,
                   children: [
                     const Text(
                       'Already have an account? ',
@@ -561,7 +581,8 @@ class _RegisterField extends StatelessWidget {
     this.obscureText = false,
     this.suffixIcon,
     this.validator,
-    this.textCapitalization = TextCapitalization.none,
+    this.textCapitalization =
+        TextCapitalization.none,
   });
 
   @override
@@ -591,7 +612,8 @@ class _RegisterField extends StatelessWidget {
         suffixIcon: suffixIcon,
         filled: true,
         fillColor: const Color(0xFF0C0D0F),
-        contentPadding: const EdgeInsets.symmetric(
+        contentPadding:
+            const EdgeInsets.symmetric(
           horizontal: 18,
           vertical: 19,
         ),
@@ -620,7 +642,8 @@ class _RegisterField extends StatelessWidget {
             width: 1.1,
           ),
         ),
-        focusedErrorBorder: OutlineInputBorder(
+        focusedErrorBorder:
+            OutlineInputBorder(
           borderRadius: BorderRadius.circular(17),
           borderSide: const BorderSide(
             color: Colors.white,

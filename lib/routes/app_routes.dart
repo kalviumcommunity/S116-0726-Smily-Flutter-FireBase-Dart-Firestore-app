@@ -1,39 +1,54 @@
 import 'package:flutter/material.dart';
-import '../features/auth/screens/splash_screen.dart';
-import '../features/auth/screens/role_selection_screen.dart';
-import '../features/auth/screens/login_screen.dart';
-import '../features/auth/screens/forgot_password_screen.dart';
-import '../features/auth/screens/reset_password_screen.dart';
+
 import '../core/theme/app_theme.dart';
+import '../features/auth/screens/forgot_password_screen.dart';
+import '../features/auth/screens/login_screen.dart';
+import '../features/auth/screens/reset_password_screen.dart';
+import '../features/auth/screens/role_selection_screen.dart';
+import '../features/auth/screens/splash_screen.dart';
 
 class AppRoutes {
+  AppRoutes._();
+
   static const String splash = '/';
+
   static const String roleSelection = '/role-selection';
+
   static const String login = '/login';
+
   static const String riderRegister = '/rider-register';
+
   static const String driverRegister = '/driver-register';
+
   static const String forgotPassword = '/forgot-password';
+
   static const String resetPassword = '/reset-password';
+
   static const String passengerHome = '/passenger-home';
+
+  static const String searchRide = '/search-ride';
+
+  static const String rideResults = '/ride-results';
+
+  static const String rideDetails = '/ride-details';
+
+  static const String myRides = '/my-rides';
+
+  static const String riderProfile = '/rider-profile';
+
   static const String driverDashboard = '/driver-dashboard';
 
   static Map<String, WidgetBuilder> get routes {
     return {
       splash: (context) => const SplashScreen(),
+
       roleSelection: (context) => const RoleSelectionScreen(),
+
       login: (context) => const LoginScreen(),
+
       forgotPassword: (context) => const ForgotPasswordScreen(),
+
       resetPassword: (context) => const ResetPasswordScreen(),
-      passengerHome: (context) => const PlaceholderScreen(
-            title: 'Passenger Home',
-            nextRoute: login,
-            nextText: 'Log Out',
-          ),
-      driverDashboard: (context) => const PlaceholderScreen(
-            title: 'Driver Dashboard',
-            nextRoute: login,
-            nextText: 'Log Out',
-          ),
     };
   }
 }
