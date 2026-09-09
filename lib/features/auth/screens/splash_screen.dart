@@ -20,6 +20,7 @@ class _SplashScreenState extends State<SplashScreen>
   late Animation<double> _logoFade;
   late Animation<double> _logoScale;
   late Animation<double> _contentFade;
+  Timer? _splashTimer;
 
   @override
   void initState() {
@@ -75,18 +76,19 @@ class _SplashScreenState extends State<SplashScreen>
 
     // Frontend-only splash flow.
     // Firebase authentication will be connected later.
-    Timer(const Duration(milliseconds: 2800), () {
+    _splashTimer = Timer(const Duration(milliseconds: 2800), () {
       if (!mounted) return;
 
       Navigator.pushReplacementNamed(
         context,
-        AppRoutes.login,
+        AppRoutes.roleSelection,
       );
     });
   }
 
   @override
   void dispose() {
+    _splashTimer?.cancel();
     _logoController.dispose();
     _routeController.dispose();
     _loaderController.dispose();

@@ -41,9 +41,20 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = false;
     });
 
+    final String? passedRole =
+        ModalRoute.of(context)?.settings.arguments as String?;
+    final emailLower = email.toLowerCase();
+
+    String destinationRoute = AppRoutes.passengerHome;
+    if (emailLower.contains('admin') || passedRole == 'Admin') {
+      destinationRoute = AppRoutes.adminDashboard;
+    } else if (emailLower.contains('driver') || passedRole == 'Driver') {
+      destinationRoute = AppRoutes.driverDashboard;
+    }
+
     Navigator.pushReplacementNamed(
       context,
-      AppRoutes.passengerHome,
+      destinationRoute,
     );
   }
 
@@ -454,6 +465,39 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                         ],
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // =========================
+                      // ADMIN PORTAL LINK
+                      // =========================
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            AppRoutes.adminLogin,
+                          );
+                        },
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.admin_panel_settings_outlined,
+                              size: 17,
+                              color: Color(0xFF6E6F74),
+                            ),
+                            SizedBox(width: 6),
+                            Text(
+                              'Admin Portal',
+                              style: TextStyle(
+                                color: Color(0xFF7E7F84),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
 
                       const SizedBox(height: 30),

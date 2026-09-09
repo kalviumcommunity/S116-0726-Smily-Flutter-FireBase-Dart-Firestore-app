@@ -15,11 +15,20 @@ let package = Package(
         .library(name: "FlutterGeneratedPluginSwiftPackage", type: .static, targets: ["FlutterGeneratedPluginSwiftPackage"])
     ],
     dependencies: [
-        
+        .package(name: "cloud_firestore", path: "../.packages/cloud_firestore-5.6.12"),
+        .package(name: "firebase_auth", path: "../.packages/firebase_auth-5.7.0"),
+        .package(name: "firebase_core", path: "../.packages/firebase_core-3.15.2"),
+        .package(name: "FlutterFramework", path: "../.packages/FlutterFramework")
     ],
     targets: [
         .target(
-            name: "FlutterGeneratedPluginSwiftPackage"
+            name: "FlutterGeneratedPluginSwiftPackage",
+            dependencies: [
+                .product(name: "cloud-firestore", package: "cloud_firestore"),
+                .product(name: "firebase-auth", package: "firebase_auth"),
+                .product(name: "firebase-core", package: "firebase_core"),
+                .product(name: "FlutterFramework", package: "FlutterFramework")
+            ]
         )
     ]
 )

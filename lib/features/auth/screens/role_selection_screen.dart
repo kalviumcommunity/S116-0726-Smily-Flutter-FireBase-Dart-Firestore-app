@@ -16,9 +16,18 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF030405),
       body: SafeArea(
-        child: Column(
-          children: [
-            const SizedBox(height: 42),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight,
+                ),
+                child: IntrinsicHeight(
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 42),
 
             // ================= LOGO =================
             Image.asset(
@@ -156,6 +165,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                     Navigator.pushNamed(
                       context,
                       AppRoutes.login,
+                      arguments: selectedRole,
                     );
                   },
                   child: const Text(
@@ -171,7 +181,12 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
             ),
 
             const SizedBox(height: 28),
-          ],
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );

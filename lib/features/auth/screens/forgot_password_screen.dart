@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../routes/app_routes.dart';
+
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
 
@@ -53,17 +55,20 @@ class _ForgotPasswordScreenState
     });
 
     _showMessage(
-      'Password reset link sent! Check your inbox.',
+      'Password reset link verified! Please set a new password.',
       isError: false,
     );
 
     await Future.delayed(
-      const Duration(seconds: 2),
+      const Duration(milliseconds: 700),
     );
 
     if (!mounted) return;
 
-    Navigator.pop(context);
+    Navigator.pushReplacementNamed(
+      context,
+      AppRoutes.resetPassword,
+    );
   }
 
   void _showMessage(

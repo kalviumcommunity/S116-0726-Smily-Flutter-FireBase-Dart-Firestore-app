@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../routes/app_routes.dart';
+
 class ResetPasswordScreen extends StatefulWidget {
   const ResetPasswordScreen({super.key});
 
@@ -16,6 +18,70 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
   bool _obscureNewPassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isLoading = false;
+
+  void _handleResetPassword() async {
+    FocusScope.of(context).unfocus();
+
+    final newPassword = _newPasswordController.text;
+    final confirmPassword = _confirmPasswordController.text;
+
+    if (newPassword.isEmpty || confirmPassword.isEmpty) {
+      _showMessage('Please enter both passwords.', isError: true);
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      _showMessage('Password must be at least 6 characters long.', isError: true);
+      return;
+    }
+
+    if (newPassword != confirmPassword) {
+      _showMessage('Passwords do not match.', isError: true);
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    await Future.delayed(const Duration(milliseconds: 700));
+
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    _showMessage('Password reset successfully! Please log in.', isError: false);
+
+    await Future.delayed(const Duration(milliseconds: 900));
+
+    if (!mounted) return;
+
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      AppRoutes.login,
+      (route) => false,
+    );
+  }
+
+  void _showMessage(String message, {bool isError = true}) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: isError
+              ? const Color(0xFFE53935)
+              : const Color(0xFF17181A),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+  }
 
   @override
   void dispose() {
@@ -275,9 +341,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       width: double.infinity,
                       height: 66,
                       child: ElevatedButton(
-                        onPressed: () {
-                          // Password reset functionality later
-                        },
+                        onPressed: _isLoading ? null : _handleResetPassword,
                         style: ElevatedButton.styleFrom(
                           backgroundColor:
                               const Color(0xFFF1F1F3),
@@ -289,23 +353,32 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                 BorderRadius.circular(18),
                           ),
                         ),
-                        child: const Row(
-                          mainAxisAlignment:
-                              MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Reset Password',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w600,
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  color: Color(0xFF111214),
+                                ),
+                              )
+                            : const Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Reset Password',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  SizedBox(width: 14),
+                                  Icon(
+                                    Icons.arrow_forward_rounded,
+                                  ),
+                                ],
                               ),
-                            ),
-                            SizedBox(width: 14),
-                            Icon(
-                              Icons.arrow_forward_rounded,
-                            ),
-                          ],
-                        ),
                       ),
                     ),
 

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../routes/app_routes.dart';
+
 class RideDetailsScreen extends StatelessWidget {
   const RideDetailsScreen({super.key});
 
@@ -416,11 +418,16 @@ class RideDetailsScreen extends StatelessWidget {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text(
-                                  'Ride booked successfully!',
+                                  'Ride booked successfully! Added to My Rides.',
                                 ),
                                 behavior: SnackBarBehavior.floating,
                                 backgroundColor: Color(0xFF17181A),
                               ),
+                            );
+
+                            Navigator.pushReplacementNamed(
+                              context,
+                              AppRoutes.myRides,
                             );
                           },
                           style: ElevatedButton.styleFrom(

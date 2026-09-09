@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+// ---------------- AUTH ----------------
+import '../features/auth/screens/admin_login_screen.dart';
 import '../features/auth/screens/driver_register_screen.dart';
 import '../features/auth/screens/forgot_password_screen.dart';
 import '../features/auth/screens/login_screen.dart';
@@ -7,12 +9,26 @@ import '../features/auth/screens/reset_password_screen.dart';
 import '../features/auth/screens/rider_register_screen.dart';
 import '../features/auth/screens/role_selection_screen.dart';
 import '../features/auth/screens/splash_screen.dart';
+
+// ---------------- RIDER ----------------
 import '../features/passenger/screens/my_rides_screen.dart';
 import '../features/passenger/screens/passenger_home_screen.dart';
 import '../features/passenger/screens/ride_details_screen.dart';
 import '../features/passenger/screens/ride_results_screen.dart';
 import '../features/passenger/screens/rider_profile_screen.dart';
 import '../features/passenger/screens/search_ride_screen.dart';
+
+// ---------------- DRIVER ----------------
+import '../features/driver/screens/driver_dashboard_screen.dart';
+import '../features/driver/screens/driver_my_rides_screen.dart';
+import '../features/driver/screens/driver_profile_screen.dart';
+import '../features/driver/screens/driver_ride_requests_screen.dart';
+
+// ---------------- ADMIN ----------------
+import '../features/admin/screens/admin_dashboard_screen.dart';
+import '../features/admin/screens/admin_users_screen.dart';
+
+// ---------------- ROUTES ----------------
 import '../routes/app_routes.dart';
 
 class AppRouter {
@@ -20,6 +36,10 @@ class AppRouter {
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
+      // ============================================================
+      // AUTH
+      // ============================================================
+
       case AppRoutes.splash:
         return MaterialPageRoute(
           builder: (_) => const SplashScreen(),
@@ -55,6 +75,15 @@ class AppRouter {
           builder: (_) => const ResetPasswordScreen(),
         );
 
+      case AppRoutes.adminLogin:
+        return MaterialPageRoute(
+          builder: (_) => const AdminLoginScreen(),
+        );
+
+      // ============================================================
+      // RIDER
+      // ============================================================
+
       case AppRoutes.passengerHome:
         return MaterialPageRoute(
           builder: (_) => const PassengerHomeScreen(),
@@ -85,42 +114,52 @@ class AppRouter {
           builder: (_) => const RiderProfileScreen(),
         );
 
+      // ============================================================
+      // DRIVER
+      // ============================================================
+
       case AppRoutes.driverDashboard:
         return MaterialPageRoute(
-          builder: (_) => const _ComingSoonScreen(
-            title: 'Driver Dashboard',
-          ),
+          builder: (_) => const DriverDashboardScreen(),
         );
+
+      case AppRoutes.driverRideRequests:
+        return MaterialPageRoute(
+          builder: (_) => const DriverRideRequestsScreen(),
+        );
+
+      case AppRoutes.driverMyRides:
+        return MaterialPageRoute(
+          builder: (_) => const DriverMyRidesScreen(),
+        );
+
+      case AppRoutes.driverProfile:
+        return MaterialPageRoute(
+          builder: (_) => const DriverProfileScreen(),
+        );
+
+      // ============================================================
+      // ADMIN
+      // ============================================================
+
+      case AppRoutes.adminDashboard:
+        return MaterialPageRoute(
+          builder: (_) => const AdminDashboardScreen(),
+        );
+
+      case AppRoutes.adminUsers:
+        return MaterialPageRoute(
+          builder: (_) => const AdminUsersScreen(),
+        );
+
+      // ============================================================
+      // FALLBACK
+      // ============================================================
 
       default:
         return MaterialPageRoute(
           builder: (_) => const SplashScreen(),
         );
     }
-  }
-}
-
-class _ComingSoonScreen extends StatelessWidget {
-  final String title;
-
-  const _ComingSoonScreen({
-    required this.title,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF030405),
-      body: Center(
-        child: Text(
-          title,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    );
   }
 }
