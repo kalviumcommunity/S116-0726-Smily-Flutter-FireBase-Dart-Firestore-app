@@ -34,6 +34,17 @@ class UserModel {
   }
 
   factory UserModel.fromMap(Map<String, dynamic> map, String uid, {DriverDetails? driverDetails}) {
+    DateTime parseCreatedAt(dynamic value) {
+      if (value is Timestamp) {
+        return value.toDate();
+      } else if (value is String) {
+        return DateTime.tryParse(value) ?? DateTime.now();
+      } else if (value is int) {
+        return DateTime.fromMillisecondsSinceEpoch(value);
+      }
+      return DateTime.now();
+    }
+
     return UserModel(
       uid: uid,
       fullName: map['fullName'] ?? '',
@@ -41,8 +52,30 @@ class UserModel {
       email: map['email'] ?? '',
       role: map['role'] ?? 'passenger',
       isActive: map['isActive'] ?? true,
-      createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      createdAt: parseCreatedAt(map['createdAt']),
       driverDetails: driverDetails,
+    );
+  }
+
+  UserModel copyWith({
+    String? uid,
+    String? fullName,
+    String? phoneNumber,
+    String? email,
+    String? role,
+    bool? isActive,
+    DateTime? createdAt,
+    DriverDetails? driverDetails,
+  }) {
+    return UserModel(
+      uid: uid ?? this.uid,
+      fullName: fullName ?? this.fullName,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      email: email ?? this.email,
+      role: role ?? this.role,
+      isActive: isActive ?? this.isActive,
+      createdAt: createdAt ?? this.createdAt,
+      driverDetails: driverDetails ?? this.driverDetails,
     );
   }
 }
@@ -87,6 +120,26 @@ class DriverDetails {
       isOnline: map['isOnline'] ?? false,
       isBusy: map['isBusy'] ?? false,
       currentZone: map['currentZone'],
+    );
+  }
+
+  DriverDetails copyWith({
+    String? uid,
+    String? vehicleType,
+    String? vehicleRegistrationNumber,
+    String? unionPermitNumber,
+    bool? isOnline,
+    bool? isBusy,
+    String? currentZone,
+  }) {
+    return DriverDetails(
+      uid: uid ?? this.uid,
+      vehicleType: vehicleType ?? this.vehicleType,
+      vehicleRegistrationNumber: vehicleRegistrationNumber ?? this.vehicleRegistrationNumber,
+      unionPermitNumber: unionPermitNumber ?? this.unionPermitNumber,
+      isOnline: isOnline ?? this.isOnline,
+      isBusy: isBusy ?? this.isBusy,
+      currentZone: currentZone ?? this.currentZone,
     );
   }
 }
