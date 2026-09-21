@@ -1,12 +1,20 @@
-import 'package:firebase_core/firebase_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:async';
 import '../models/ride_model.dart';
-import '../core/constants/app_constants.dart';
 
 class RideService {
-  FirebaseFirestore get _firestore => FirebaseFirestore.instance;
+  static final RideService _instance = RideService._internal();
+  factory RideService() => _instance;
+  RideService._internal();
 
-  /// Creates a new ride request in Firestore
+  final List<RideModel> _rides = [];
+  final StreamController<List<RideModel>> _ridesController =
+      StreamController<List<RideModel>>.broadcast();
+
+  void _notify() {
+    _ridesController.add(List.from(_rides));
+  }
+
+  /// Creates a new ride request in memory
   Future<RideModel> createRideRequest({
     required String passengerId,
     required String passengerName,
@@ -16,105 +24,51 @@ class RideService {
     required String vehicleType,
     required double fare,
   }) async {
-    try {
-      if (Firebase.apps.isEmpty) {
-        return RideModel(
-          id: 'mock_ride_id',
-          passengerId: passengerId,
-          passengerName: passengerName,
-          passengerPhone: passengerPhone,
-          pickupLocation: pickupLocation,
-          dropLocation: dropLocation,
-          vehicleType: vehicleType,
-          fare: fare,
-        );
-      }
+    final ride = RideModel(
+      id: 'ride_${DateTime.now().millisecondsSinceEpoch}',
+      passengerId: passengerId,
+      passengerName: passengerName,
+      passengerPhone: passengerPhone,
+      pickupLocation: pickupLocation,
+      dropLocation: dropLocation,
+      vehicleType: vehicleType,
+      fare: fare,
+      status: 'requested',
+      createdAt: DateTime.now(),
+    );
 
-      final docRef = _firestore.collection(AppConstants.collectionRides).doc();
-
-      final ride = RideModel(
-        id: docRef.id,
-        passengerId: passengerId,
-        passengerName: passengerName,
-        passengerPhone: passengerPhone,
-        pickupLocation: pickupLocation,
-        dropLocation: dropLocation,
-        vehicleType: vehicleType,
-        fare: fare,
-        status: 'requested',
-        createdAt: DateTime.now(),
-      );
-
-      await docRef.set(ride.toMap());
-      return ride;
-    } catch (e) {
-      throw 'Failed to create ride request: ${e.toString()}';
-    }
+    _rides.add(ride);
+    _notify();
+    return ride;
   }
 
   /// Streams available ride requests for drivers filtered by vehicleType
   Stream<List<RideModel>> streamAvailableRides({String? vehicleType}) {
-    try {
-      if (Firebase.apps.isEmpty) return Stream.value([]);
-
-      Query query = _firestore
-          .collection(AppConstants.collectionRides)
-          .where('status', isEqualTo: 'requested');
-
-      if (vehicleType != null && vehicleType.isNotEmpty) {
-        query = query.where('vehicleType', isEqualTo: vehicleType);
-      }
-
-      return query.snapshots().map((snapshot) {
-        return snapshot.docs
-            .map((doc) => RideModel.fromMap(doc.data() as Map<String, dynamic>, doc.id))
-            .toList();
-      });
-    } catch (_) {
-      return Stream.value([]);
-    }
+    return _ridesController.stream.map((rides) {
+      return rides.where((r) {
+        final matchesStatus = r.status == 'requested';
+        final matchesVehicle = vehicleType == null || vehicleType.isEmpty || r.vehicleType == vehicleType;
+        return matchesStatus && matchesVehicle;
+      }).toList();
+    });
   }
 
   /// Streams rides belonging to a specific passenger
   Stream<List<RideModel>> streamPassengerRides(String passengerId) {
-    try {
-      if (Firebase.apps.isEmpty) return Stream.value([]);
-
-      return _firestore
-          .collection(AppConstants.collectionRides)
-          .where('passengerId', isEqualTo: passengerId)
-          .snapshots()
-          .map((snapshot) {
-        final rides = snapshot.docs
-            .map((doc) => RideModel.fromMap(doc.data(), doc.id))
-            .toList();
-        rides.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-        return rides;
-      });
-    } catch (_) {
-      return Stream.value([]);
-    }
+    return _ridesController.stream.map((rides) {
+      final filtered = rides.where((r) => r.passengerId == passengerId).toList();
+      filtered.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return filtered;
+    });
   }
 
   /// Streams rides accepted or completed by a specific driver
   Stream<List<RideModel>> streamDriverRides(String driverId) {
-    try {
-      if (Firebase.apps.isEmpty) return Stream.value([]);
-
-      return _firestore
-          .collection(AppConstants.collectionRides)
-          .where('driverId', isEqualTo: driverId)
-          .snapshots()
-          .map((snapshot) {
-        final rides = snapshot.docs
-            .map((doc) => RideModel.fromMap(doc.data(), doc.id))
-            .toList();
-        rides.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-        return rides;
-      });
-    } catch (_) {
-      return Stream.value([]);
-    }
+    return _ridesController.stream.map((rides) {
+      final filtered = rides.where((r) => r.driverId == driverId).toList();
+      filtered.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return filtered;
+    });
   }
 
   /// Accepts a ride request by a driver
@@ -124,27 +78,16 @@ class RideService {
     required String driverName,
     String? driverPhone,
   }) async {
-    try {
-      final batch = _firestore.batch();
-      final rideRef = _firestore.collection(AppConstants.collectionRides).doc(rideId);
-      final driverRef = _firestore.collection(AppConstants.collectionDrivers).doc(driverId);
-
-      batch.update(rideRef, {
-        'driverId': driverId,
-        'driverName': driverName,
-        'driverPhone': driverPhone ?? '',
-        'status': 'accepted',
-        'acceptedAt': Timestamp.fromDate(DateTime.now()),
-      });
-
-      batch.update(driverRef, {
-        'isBusy': true,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-
-      await batch.commit();
-    } catch (e) {
-      throw 'Failed to accept ride: ${e.toString()}';
+    final index = _rides.indexWhere((r) => r.id == rideId);
+    if (index != -1) {
+      _rides[index] = _rides[index].copyWith(
+        driverId: driverId,
+        driverName: driverName,
+        driverPhone: driverPhone ?? '',
+        status: 'accepted',
+        acceptedAt: DateTime.now(),
+      );
+      _notify();
     }
   }
 
@@ -154,38 +97,21 @@ class RideService {
     required String newStatus,
     String? driverId,
   }) async {
-    try {
-      final batch = _firestore.batch();
-      final rideRef = _firestore.collection(AppConstants.collectionRides).doc(rideId);
-
-      final Map<String, dynamic> updateData = {'status': newStatus};
-      if (newStatus == 'completed') {
-        updateData['completedAt'] = Timestamp.fromDate(DateTime.now());
-      }
-
-      batch.update(rideRef, updateData);
-
-      if ((newStatus == 'completed' || newStatus == 'cancelled') && driverId != null && driverId.isNotEmpty) {
-        final driverRef = _firestore.collection(AppConstants.collectionDrivers).doc(driverId);
-        batch.update(driverRef, {
-          'isBusy': false,
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
-      }
-
-      await batch.commit();
-    } catch (e) {
-      throw 'Failed to update ride status: ${e.toString()}';
+    final index = _rides.indexWhere((r) => r.id == rideId);
+    if (index != -1) {
+      _rides[index] = _rides[index].copyWith(
+        status: newStatus,
+        completedAt: newStatus == 'completed' ? DateTime.now() : _rides[index].completedAt,
+      );
+      _notify();
     }
   }
 
   /// Single ride document fetch
   Future<RideModel?> getRideDetails(String rideId) async {
     try {
-      final doc = await _firestore.collection(AppConstants.collectionRides).doc(rideId).get();
-      if (!doc.exists || doc.data() == null) return null;
-      return RideModel.fromMap(doc.data()!, doc.id);
-    } catch (e) {
+      return _rides.firstWhere((r) => r.id == rideId);
+    } catch (_) {
       return null;
     }
   }

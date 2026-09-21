@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+// UserModel without backend/Firestore dependencies
 
 class UserModel {
   final String uid;
@@ -29,18 +29,18 @@ class UserModel {
       'email': email,
       'role': role,
       'isActive': isActive,
-      'createdAt': Timestamp.fromDate(createdAt),
+      'createdAt': createdAt.toIso8601String(),
     };
   }
 
   factory UserModel.fromMap(Map<String, dynamic> map, String uid, {DriverDetails? driverDetails}) {
     DateTime parseCreatedAt(dynamic value) {
-      if (value is Timestamp) {
-        return value.toDate();
-      } else if (value is String) {
+      if (value is String) {
         return DateTime.tryParse(value) ?? DateTime.now();
       } else if (value is int) {
         return DateTime.fromMillisecondsSinceEpoch(value);
+      } else if (value is DateTime) {
+        return value;
       }
       return DateTime.now();
     }
@@ -107,7 +107,7 @@ class DriverDetails {
       'isOnline': isOnline,
       'isBusy': isBusy,
       'currentZone': currentZone,
-      'updatedAt': FieldValue.serverTimestamp(),
+      'updatedAt': DateTime.now().toIso8601String(),
     };
   }
 

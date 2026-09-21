@@ -12,7 +12,7 @@ class AppConstants {
   static const String vehicleAuto = 'auto';
   static const String vehicleCab = 'cab';
 
-  // Firestore Collections
+  // Data Collections
   static const String collectionUsers = 'users';
   static const String collectionDrivers = 'drivers';
   static const String collectionRides = 'rides';
