@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+// RideModel without backend/Firestore dependencies
 
 class RideModel {
   final String id;
@@ -49,29 +49,29 @@ class RideModel {
       'vehicleType': vehicleType,
       'fare': fare,
       'status': status,
-      'createdAt': Timestamp.fromDate(createdAt),
-      'acceptedAt': acceptedAt != null ? Timestamp.fromDate(acceptedAt!) : null,
-      'completedAt': completedAt != null ? Timestamp.fromDate(completedAt!) : null,
+      'createdAt': createdAt.toIso8601String(),
+      'acceptedAt': acceptedAt?.toIso8601String(),
+      'completedAt': completedAt?.toIso8601String(),
     };
   }
 
   factory RideModel.fromMap(Map<String, dynamic> map, String docId) {
     DateTime parseDate(dynamic value) {
-      if (value is Timestamp) {
-        return value.toDate();
-      } else if (value is String) {
+      if (value is String) {
         return DateTime.tryParse(value) ?? DateTime.now();
       } else if (value is int) {
         return DateTime.fromMillisecondsSinceEpoch(value);
+      } else if (value is DateTime) {
+        return value;
       }
       return DateTime.now();
     }
 
     DateTime? parseNullableDate(dynamic value) {
       if (value == null) return null;
-      if (value is Timestamp) return value.toDate();
       if (value is String) return DateTime.tryParse(value);
       if (value is int) return DateTime.fromMillisecondsSinceEpoch(value);
+      if (value is DateTime) return value;
       return null;
     }
 

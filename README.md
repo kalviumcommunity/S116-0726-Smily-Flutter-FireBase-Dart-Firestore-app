@@ -4,7 +4,6 @@
 
 [![Flutter](https://img.shields.io/badge/Flutter-02569B?style=flat-square&logo=flutter&logoColor=white)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-0175C2?style=flat-square&logo=dart&logoColor=white)](https://dart.dev)
-[![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=flat-square&logo=firebase&logoColor=black)](https://firebase.google.com)
 
 ---
 
@@ -33,38 +32,33 @@ UnionRide modernizes regional auto-rickshaw & cab union operations, replacing ma
 ## 🛠 Tech Stack
 
 - **Frontend:** Flutter & Dart (Cross-platform native UI, 60fps)
-- **Authentication:** Firebase Auth (Phone OTP & RBAC)
-- **Database:** Cloud Firestore (Real-time NoSQL, reactive listeners)
-- **Storage:** Firebase Storage (Driver Licenses, RC, Permits, Avatars)
+- **Architecture:** Self-Contained Client Architecture with Reactive In-Memory Services
+- **State & Data Handling:** Asynchronous Dart Streams (`StreamController`) & Local Models
 
 ---
 
-## 🗄 Cloud Firestore Schema
+## 🗄 Application Data Models
 
-- `users/{uid}`: `fullName`, `phoneNumber`, `role`, `createdAt`, `isActive`
+- `users/{uid}`: `fullName`, `phoneNumber`, `email`, `role`, `createdAt`, `isActive`
 - `drivers/{uid}`: `vehicleType` (auto/cab), `vehicleRegistrationNumber`, `unionPermitNumber`, `isOnline`, `isBusy`, `currentZone`
-- `rides/{rideId}`: `passengerId`, `driverId`, `vehicleType`, `pickupLocation`, `dropoffLocation`, `zoneId`, `fareEstimate`, `status`, `completedAt`
+- `rides/{rideId}`: `passengerId`, `driverId`, `vehicleType`, `pickupLocation`, `dropLocation`, `fare`, `status`, `completedAt`
 - `zones/{zoneId}`: `zoneName`, `activeDriversCount`, `pendingRequestsCount`, `totalCompletedToday`, `lastUpdated`
 
 ---
 
-## 🔄 Ride State Machine & Security
+## 🔄 Ride State Machine
 
 ### State Flow
 `PENDING` → `ACCEPTED` → `ARRIVED` → `IN_TRANSIT` → `COMPLETED` *(or `CANCELLED`)*
 
-> 🔒 **Atomic Transactions:** Accepts verify `status == PENDING` in a single transaction to prevent race conditions across concurrent driver acceptances.
-
-### Access Control & Storage Asset Mapping
-- **Storage:** `/users/{uid}/avatar.jpg`, `/drivers/{driverId}/license.jpg`, `/drivers/{driverId}/rc_permit.pdf`
-- **Security Matrix:** Profile Owner write (`users`), Driver/Admin write (`drivers`), Assigned Passenger/Driver/Admin write (`rides`).
+> 🔒 **In-Memory Concurrency:** Ride assignments check ride state before transition to maintain atomic updates across active sessions.
 
 ---
 
 ## 🗓 Delivery Roadmap
 
-1. **Sprint 1 (Foundation):** Setup, Phone Auth, Profiles & Document Storage.
-2. **Sprint 2 (Core Dispatch Loop - Current):** Booking Engine, Driver Offer Popup, Atomic Assignment, Trip Lifecycle.
+1. **Sprint 1 (Foundation):** Setup, Profiles & Document Structures.
+2. **Sprint 2 (Core Dispatch Loop - Current):** Booking Engine, Driver Offer Popup, In-Memory Assignment, Trip Lifecycle.
 3. **Sprint 3 (Admin & Analytics):** Unassigned Queue Override, Fleet Monitor & Zonal Demand Heatmap.
 
 ---
@@ -77,10 +71,6 @@ git clone https://github.com/kalviumcommunity/S116-0726-Smily-Flutter-FireBase-D
 cd S116-0726-Smily-Flutter-FireBase-Dart-Firestore-app
 flutter pub get
 
-# 2. Configure Firebase & run emulators
-flutterfire configure
-firebase emulators:start
-
-# 3. Launch App
+# 2. Launch App
 flutter run
 ```
