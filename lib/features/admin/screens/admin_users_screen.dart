@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../models/user_model.dart';
+import '../../../services/admin_service.dart';
 
 class AdminUsersScreen extends StatefulWidget {
   const AdminUsersScreen({super.key});
@@ -8,8 +10,9 @@ class AdminUsersScreen extends StatefulWidget {
 }
 
 class _AdminUsersScreenState extends State<AdminUsersScreen> {
-  int _selectedTab = 0;
+  int _selectedTab = 0; // 0: Riders, 1: Drivers
   String _searchQuery = '';
+  final AdminService _adminService = AdminService();
 
   static const Color _background = Color(0xFF030405);
   static const Color _card = Color(0xFF111214);
@@ -18,105 +21,54 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
   static const Color _muted = Color(0xFF7E7F83);
   static const Color _secondary = Color(0xFFB0B1B4);
 
-  final List<Map<String, dynamic>> _riders = [
-    {
-      'name': 'Aman Sharma',
-      'email': 'aman@example.com',
-      'phone': '+91 98765 43210',
-      'status': 'Active',
-    },
-    {
-      'name': 'Rahul Mehta',
-      'email': 'rahul@example.com',
-      'phone': '+91 98765 12345',
-      'status': 'Active',
-    },
-    {
-      'name': 'Priya Shah',
-      'email': 'priya@example.com',
-      'phone': '+91 99887 66554',
-      'status': 'Active',
-    },
-  ];
-
-  final List<Map<String, dynamic>> _drivers = [
-    {
-      'name': 'Vikram Singh',
-      'email': 'vikram@example.com',
-      'phone': '+91 98765 11111',
-      'status': 'Online',
-      'accountStatus': 'Active',
-      'vehicle': 'Maruti Suzuki Dzire',
-      'registration': 'MH 12 AB 1234',
-    },
-    {
-      'name': 'Rohit Patil',
-      'email': 'rohit@example.com',
-      'phone': '+91 98765 22222',
-      'status': 'Offline',
-      'accountStatus': 'Active',
-      'vehicle': 'Hyundai Aura',
-      'registration': 'MH 14 CD 5678',
-    },
-    {
-      'name': 'Arjun Verma',
-      'email': 'arjun@example.com',
-      'phone': '+91 98765 33333',
-      'status': 'Online',
-      'accountStatus': 'Active',
-      'vehicle': 'Honda City',
-      'registration': 'MH 12 EF 9012',
-    },
-  ];
-
-  List<Map<String, dynamic>> get _filteredUsers {
-    final users = _selectedTab == 0 ? _riders : _drivers;
-
-    if (_searchQuery.trim().isEmpty) {
-      return users;
-    }
-
-    final query = _searchQuery.toLowerCase().trim();
-
-    return users.where((user) {
-      return user['name']
-              .toString()
-              .toLowerCase()
-              .contains(query) ||
-          user['email']
-              .toString()
-              .toLowerCase()
-              .contains(query) ||
-          user['phone']
-              .toString()
-              .toLowerCase()
-              .contains(query);
-    }).toList();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
       color: _background,
       child: SafeArea(
         bottom: false,
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(18, 20, 18, 28),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(),
-              const SizedBox(height: 22),
-              _buildTabs(),
-              const SizedBox(height: 14),
-              _buildSearch(),
-              const SizedBox(height: 20),
-              _buildSectionHeader(),
-              const SizedBox(height: 10),
-              _buildUserList(),
-            ],
-          ),
+        child: StreamBuilder<List<UserModel>>(
+          stream: _adminService.streamAllUsers(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              );
+            }
+
+            final allUsers = snapshot.data ?? [];
+            final riders = allUsers.where((u) => u.role == 'passenger').toList();
+            final drivers = allUsers.where((u) => u.role == 'driver').toList();
+
+            final targetList = _selectedTab == 0 ? riders : drivers;
+
+            final filteredUsers = targetList.where((u) {
+              if (_searchQuery.trim().isEmpty) return true;
+              final q = _searchQuery.toLowerCase().trim();
+              return u.fullName.toLowerCase().contains(q) ||
+                  u.email.toLowerCase().contains(q) ||
+                  u.phoneNumber.toLowerCase().contains(q);
+            }).toList();
+
+            return SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(18, 20, 18, 28),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeader(),
+                  const SizedBox(height: 22),
+                  _buildTabs(riders.length, drivers.length),
+                  const SizedBox(height: 14),
+                  _buildSearch(),
+                  const SizedBox(height: 20),
+                  _buildSectionHeader(filteredUsers.length),
+                  const SizedBox(height: 10),
+                  _buildUserList(filteredUsers),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
@@ -127,7 +79,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Users',
+          'Users & Fleet Management',
           style: TextStyle(
             color: Colors.white,
             fontSize: 24,
@@ -136,7 +88,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
         ),
         SizedBox(height: 5),
         Text(
-          'Manage riders and drivers',
+          'Manage union riders and verified drivers',
           style: TextStyle(
             color: _muted,
             fontSize: 12,
@@ -146,7 +98,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     );
   }
 
-  Widget _buildTabs() {
+  Widget _buildTabs(int riderCount, int driverCount) {
     return Container(
       height: 46,
       padding: const EdgeInsets.all(4),
@@ -160,7 +112,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
       child: Row(
         children: [
           _buildTab(
-            label: 'Riders',
+            label: 'Riders ($riderCount)',
             selected: _selectedTab == 0,
             onTap: () {
               setState(() {
@@ -170,7 +122,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
             },
           ),
           _buildTab(
-            label: 'Drivers',
+            label: 'Drivers ($driverCount)',
             selected: _selectedTab == 1,
             onTap: () {
               setState(() {
@@ -205,8 +157,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
             style: TextStyle(
               color: selected ? Colors.white : _muted,
               fontSize: 11.5,
-              fontWeight:
-                  selected ? FontWeight.w600 : FontWeight.w400,
+              fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
             ),
           ),
         ),
@@ -243,7 +194,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
             color: Color(0xFF77787C),
             size: 20,
           ),
-          hintText: 'Search users',
+          hintText: 'Search by name, email, or phone...',
           hintStyle: TextStyle(
             color: Color(0xFF68696D),
             fontSize: 11.5,
@@ -256,13 +207,11 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     );
   }
 
-  Widget _buildSectionHeader() {
-    final users = _filteredUsers;
-
+  Widget _buildSectionHeader(int count) {
     return Row(
       children: [
         Text(
-          _selectedTab == 0 ? 'RIDERS' : 'DRIVERS',
+          _selectedTab == 0 ? 'REGISTERED RIDERS' : 'UNION DRIVERS',
           style: const TextStyle(
             color: _muted,
             fontSize: 10,
@@ -272,7 +221,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
         ),
         const Spacer(),
         Text(
-          '${users.length} ${users.length == 1 ? 'user' : 'users'}',
+          '$count ${count == 1 ? 'user' : 'users'}',
           style: const TextStyle(
             color: Color(0xFF68696D),
             fontSize: 9,
@@ -282,9 +231,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     );
   }
 
-  Widget _buildUserList() {
-    final users = _filteredUsers;
-
+  Widget _buildUserList(List<UserModel> users) {
     if (users.isEmpty) {
       return _buildEmptyState();
     }
@@ -304,14 +251,10 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     );
   }
 
-  Widget _buildUserCard(Map<String, dynamic> user) {
-    final bool isDriver = _selectedTab == 1;
-    final bool isOnline =
-        isDriver && user['status'] == 'Online';
-
-    final String accountStatus = isDriver
-        ? user['accountStatus'].toString()
-        : user['status'].toString();
+  Widget _buildUserCard(UserModel user) {
+    final bool isDriver = user.role == 'driver';
+    final details = user.driverDetails;
+    final bool isOnline = isDriver && (details?.isOnline ?? false);
 
     return GestureDetector(
       onTap: () => _showUserDetails(user),
@@ -348,11 +291,10 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        user['name'].toString(),
+                        user.fullName.isNotEmpty ? user.fullName : 'Unnamed User',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 13,
@@ -361,7 +303,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        user['email'].toString(),
+                        user.email.isNotEmpty ? user.email : 'No email',
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: _muted,
@@ -372,10 +314,8 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                   ),
                 ),
                 _buildStatusBadge(
-                  isDriver
-                      ? user['status'].toString()
-                      : accountStatus,
-                  isOnline: isDriver ? isOnline : true,
+                  user.isActive ? (isDriver ? (isOnline ? 'Online' : 'Offline') : 'Active') : 'Inactive',
+                  isActive: user.isActive,
                 ),
               ],
             ),
@@ -388,20 +328,20 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
             _buildDetailRow(
               Icons.phone_outlined,
               'Phone',
-              user['phone'].toString(),
+              user.phoneNumber.isNotEmpty ? user.phoneNumber : 'N/A',
             ),
-            if (isDriver) ...[
+            if (isDriver && details != null) ...[
               const SizedBox(height: 10),
               _buildDetailRow(
                 Icons.directions_car_outlined,
                 'Vehicle',
-                user['vehicle'].toString(),
+                '${details.vehicleType.toUpperCase()} (${details.vehicleRegistrationNumber})',
               ),
               const SizedBox(height: 10),
               _buildDetailRow(
                 Icons.confirmation_number_outlined,
-                'Registration',
-                user['registration'].toString(),
+                'Permit',
+                details.unionPermitNumber.isNotEmpty ? details.unionPermitNumber : 'Standard Permit',
               ),
             ],
             const SizedBox(height: 12),
@@ -431,10 +371,8 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
 
   Widget _buildStatusBadge(
     String status, {
-    required bool isOnline,
+    required bool isActive,
   }) {
-    final bool active = status == 'Active' || isOnline;
-
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: 9,
@@ -449,18 +387,14 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
         children: [
           Icon(
             Icons.circle,
-            color: active
-                ? Colors.white
-                : const Color(0xFF68696D),
+            color: isActive ? Colors.white : const Color(0xFF68696D),
             size: 7,
           ),
           const SizedBox(width: 5),
           Text(
             status,
             style: TextStyle(
-              color: active
-                  ? const Color(0xFFB8B9BC)
-                  : const Color(0xFF68696D),
+              color: isActive ? const Color(0xFFB8B9BC) : const Color(0xFF68696D),
               fontSize: 8.5,
               fontWeight: FontWeight.w600,
             ),
@@ -538,7 +472,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
           ),
           SizedBox(height: 5),
           Text(
-            'Try a different search.',
+            'Try a different search or switch tab.',
             style: TextStyle(
               color: _muted,
               fontSize: 10.5,
@@ -549,8 +483,9 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     );
   }
 
-  void _showUserDetails(Map<String, dynamic> user) {
-    final bool isDriver = _selectedTab == 1;
+  void _showUserDetails(UserModel user) {
+    final bool isDriver = user.role == 'driver';
+    final details = user.driverDetails;
 
     showModalBottomSheet<void>(
       context: context,
@@ -573,8 +508,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Center(
                     child: Container(
@@ -582,8 +516,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                       height: 4,
                       decoration: BoxDecoration(
                         color: const Color(0xFF353639),
-                        borderRadius:
-                            BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(4),
                       ),
                     ),
                   ),
@@ -595,8 +528,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                         height: 50,
                         decoration: BoxDecoration(
                           color: _cardLight,
-                          borderRadius:
-                              BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(14),
                         ),
                         child: Icon(
                           isDriver
@@ -609,11 +541,10 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                       const SizedBox(width: 13),
                       Expanded(
                         child: Column(
-                          crossAxisAlignment:
-                              CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              user['name'].toString(),
+                              user.fullName,
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,
@@ -622,7 +553,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              isDriver ? 'Driver' : 'Rider',
+                              isDriver ? 'Union Driver' : 'Passenger',
                               style: const TextStyle(
                                 color: _muted,
                                 fontSize: 10.5,
@@ -637,48 +568,55 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                   _buildSheetInfo(
                     Icons.email_outlined,
                     'Email',
-                    user['email'].toString(),
+                    user.email,
                   ),
                   const SizedBox(height: 12),
                   _buildSheetInfo(
                     Icons.phone_outlined,
                     'Phone',
-                    user['phone'].toString(),
+                    user.phoneNumber,
                   ),
-                  if (isDriver) ...[
+                  if (isDriver && details != null) ...[
                     const SizedBox(height: 12),
                     _buildSheetInfo(
                       Icons.directions_car_outlined,
                       'Vehicle',
-                      user['vehicle'].toString(),
+                      '${details.vehicleType.toUpperCase()} (${details.vehicleRegistrationNumber})',
                     ),
                     const SizedBox(height: 12),
                     _buildSheetInfo(
                       Icons.confirmation_number_outlined,
-                      'Registration',
-                      user['registration'].toString(),
+                      'Union Permit',
+                      details.unionPermitNumber,
                     ),
                     const SizedBox(height: 12),
                     _buildSheetInfo(
                       Icons.circle_outlined,
-                      'Availability',
-                      user['status'].toString(),
-                    ),
-                    const SizedBox(height: 12),
-                    _buildSheetInfo(
-                      Icons.verified_user_outlined,
-                      'Account',
-                      user['accountStatus'].toString(),
+                      'Duty Status',
+                      details.isOnline ? (details.isBusy ? 'Busy (On Ride)' : 'Online') : 'Offline',
                     ),
                   ],
+                  const SizedBox(height: 12),
+                  _buildSheetInfo(
+                    Icons.verified_user_outlined,
+                    'Account Status',
+                    user.isActive ? 'Active' : 'Deactivated',
+                  ),
                   const SizedBox(height: 22),
                   SizedBox(
                     width: double.infinity,
                     height: 44,
                     child: OutlinedButton(
-                      onPressed: () {
-                        _toggleAccountStatus(user);
+                      onPressed: () async {
                         Navigator.pop(sheetContext);
+                        await _adminService.toggleUserAccountStatus(user.uid, !user.isActive);
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Account status updated to ${!user.isActive ? "Active" : "Deactivated"}'),
+                            ),
+                          );
+                        }
                       },
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.white,
@@ -686,12 +624,11 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                           color: Color(0xFF303135),
                         ),
                         shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(13),
+                          borderRadius: BorderRadius.circular(13),
                         ),
                       ),
                       child: Text(
-                        _accountActionText(user, isDriver),
+                        user.isActive ? 'Deactivate Account' : 'Activate Account',
                         style: const TextStyle(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w600,
@@ -704,9 +641,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                     width: double.infinity,
                     height: 44,
                     child: TextButton(
-                      onPressed: () {
-                        Navigator.pop(sheetContext);
-                      },
+                      onPressed: () => Navigator.pop(sheetContext),
                       child: const Text(
                         'Close',
                         style: TextStyle(
@@ -758,57 +693,6 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  String _accountActionText(
-    Map<String, dynamic> user,
-    bool isDriver,
-  ) {
-    final String status = isDriver
-        ? user['accountStatus'].toString()
-        : user['status'].toString();
-
-    return status == 'Active'
-        ? 'Deactivate Account'
-        : 'Activate Account';
-  }
-
-  void _toggleAccountStatus(
-    Map<String, dynamic> user,
-  ) {
-    final bool isDriver = _selectedTab == 1;
-
-    setState(() {
-      if (isDriver) {
-        user['accountStatus'] =
-            user['accountStatus'] == 'Active'
-                ? 'Inactive'
-                : 'Active';
-      } else {
-        user['status'] =
-            user['status'] == 'Active'
-                ? 'Inactive'
-                : 'Active';
-      }
-    });
-
-    final String status = isDriver
-        ? user['accountStatus'].toString()
-        : user['status'].toString();
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: _cardLight,
-        content: Text(
-          '${user['name']} account is now $status',
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 11,
-          ),
-        ),
-        duration: const Duration(seconds: 2),
-      ),
     );
   }
 }
