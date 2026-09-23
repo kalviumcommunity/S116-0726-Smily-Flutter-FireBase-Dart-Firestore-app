@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/ride_model.dart';
 
 class RideService {
@@ -6,15 +7,9 @@ class RideService {
   factory RideService() => _instance;
   RideService._internal();
 
-  final List<RideModel> _rides = [];
-  final StreamController<List<RideModel>> _ridesController =
-      StreamController<List<RideModel>>.broadcast();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  void _notify() {
-    _ridesController.add(List.from(_rides));
-  }
-
-  /// Creates a new ride request in memory
+  /// Creates a new ride request document in Cloud Firestore
   Future<RideModel> createRideRequest({
     required String passengerId,
     required String passengerName,
@@ -24,8 +19,11 @@ class RideService {
     required String vehicleType,
     required double fare,
   }) async {
+    final docRef = _firestore.collection('rides').doc();
+    final now = DateTime.now();
+
     final ride = RideModel(
-      id: 'ride_${DateTime.now().millisecondsSinceEpoch}',
+      id: docRef.id,
       passengerId: passengerId,
       passengerName: passengerName,
       passengerPhone: passengerPhone,
@@ -34,40 +32,58 @@ class RideService {
       vehicleType: vehicleType,
       fare: fare,
       status: 'requested',
-      createdAt: DateTime.now(),
+      createdAt: now,
     );
 
-    _rides.add(ride);
-    _notify();
+    await docRef.set(ride.toMap());
     return ride;
   }
 
   /// Streams available ride requests for drivers filtered by vehicleType
   Stream<List<RideModel>> streamAvailableRides({String? vehicleType}) {
-    return _ridesController.stream.map((rides) {
-      return rides.where((r) {
-        final matchesStatus = r.status == 'requested';
-        final matchesVehicle = vehicleType == null || vehicleType.isEmpty || r.vehicleType == vehicleType;
-        return matchesStatus && matchesVehicle;
-      }).toList();
+    return _firestore
+        .collection('rides')
+        .where('status', isEqualTo: 'requested')
+        .snapshots()
+        .map((snapshot) {
+      final rides = snapshot.docs
+          .map((doc) => RideModel.fromMap(doc.data(), doc.id))
+          .toList();
+
+      if (vehicleType != null && vehicleType.isNotEmpty) {
+        return rides.where((r) => r.vehicleType == vehicleType).toList();
+      }
+      return rides;
     });
   }
 
   /// Streams rides belonging to a specific passenger
   Stream<List<RideModel>> streamPassengerRides(String passengerId) {
-    return _ridesController.stream.map((rides) {
-      final filtered = rides.where((r) => r.passengerId == passengerId).toList();
-      filtered.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      return filtered;
+    return _firestore
+        .collection('rides')
+        .where('passengerId', isEqualTo: passengerId)
+        .snapshots()
+        .map((snapshot) {
+      final rides = snapshot.docs
+          .map((doc) => RideModel.fromMap(doc.data(), doc.id))
+          .toList();
+      rides.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return rides;
     });
   }
 
   /// Streams rides accepted or completed by a specific driver
   Stream<List<RideModel>> streamDriverRides(String driverId) {
-    return _ridesController.stream.map((rides) {
-      final filtered = rides.where((r) => r.driverId == driverId).toList();
-      filtered.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      return filtered;
+    return _firestore
+        .collection('rides')
+        .where('driverId', isEqualTo: driverId)
+        .snapshots()
+        .map((snapshot) {
+      final rides = snapshot.docs
+          .map((doc) => RideModel.fromMap(doc.data(), doc.id))
+          .toList();
+      rides.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return rides;
     });
   }
 
@@ -78,17 +94,13 @@ class RideService {
     required String driverName,
     String? driverPhone,
   }) async {
-    final index = _rides.indexWhere((r) => r.id == rideId);
-    if (index != -1) {
-      _rides[index] = _rides[index].copyWith(
-        driverId: driverId,
-        driverName: driverName,
-        driverPhone: driverPhone ?? '',
-        status: 'accepted',
-        acceptedAt: DateTime.now(),
-      );
-      _notify();
-    }
+    await _firestore.collection('rides').doc(rideId).update({
+      'driverId': driverId,
+      'driverName': driverName,
+      'driverPhone': driverPhone ?? '',
+      'status': 'accepted',
+      'acceptedAt': Timestamp.now(),
+    });
   }
 
   /// Updates ride status ('ongoing', 'completed', 'cancelled')
@@ -97,22 +109,24 @@ class RideService {
     required String newStatus,
     String? driverId,
   }) async {
-    final index = _rides.indexWhere((r) => r.id == rideId);
-    if (index != -1) {
-      _rides[index] = _rides[index].copyWith(
-        status: newStatus,
-        completedAt: newStatus == 'completed' ? DateTime.now() : _rides[index].completedAt,
-      );
-      _notify();
+    final updateData = <String, dynamic>{
+      'status': newStatus,
+    };
+    if (newStatus == 'completed') {
+      updateData['completedAt'] = Timestamp.now();
     }
+    await _firestore.collection('rides').doc(rideId).update(updateData);
   }
 
   /// Single ride document fetch
   Future<RideModel?> getRideDetails(String rideId) async {
     try {
-      return _rides.firstWhere((r) => r.id == rideId);
-    } catch (_) {
-      return null;
-    }
+      final doc = await _firestore.collection('rides').doc(rideId).get();
+      if (doc.exists && doc.data() != null) {
+        return RideModel.fromMap(doc.data()!, doc.id);
+      }
+    } catch (_) {}
+    return null;
   }
 }
+
