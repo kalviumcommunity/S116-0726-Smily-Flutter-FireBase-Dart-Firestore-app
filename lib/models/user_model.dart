@@ -30,10 +30,29 @@ class UserModel {
       'role': role,
       'isActive': isActive,
       'createdAt': Timestamp.fromDate(createdAt),
+      if (driverDetails != null) 'driverDetails': driverDetails!.toMap(),
     };
   }
 
   factory UserModel.fromMap(Map<String, dynamic> map, String uid, {DriverDetails? driverDetails}) {
+    DateTime parseCreatedAt(dynamic value) {
+      if (value is Timestamp) {
+        return value.toDate();
+      } else if (value is String) {
+        return DateTime.tryParse(value) ?? DateTime.now();
+      } else if (value is int) {
+        return DateTime.fromMillisecondsSinceEpoch(value);
+      } else if (value is DateTime) {
+        return value;
+      }
+      return DateTime.now();
+    }
+
+    DriverDetails? details = driverDetails;
+    if (details == null && map['driverDetails'] != null && map['driverDetails'] is Map) {
+      details = DriverDetails.fromMap(Map<String, dynamic>.from(map['driverDetails']), uid);
+    }
+
     return UserModel(
       uid: uid,
       fullName: map['fullName'] ?? '',
@@ -41,8 +60,8 @@ class UserModel {
       email: map['email'] ?? '',
       role: map['role'] ?? 'passenger',
       isActive: map['isActive'] ?? true,
-      createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      driverDetails: driverDetails,
+      createdAt: parseCreatedAt(map['createdAt']),
+      driverDetails: details,
     );
   }
 }
@@ -74,7 +93,7 @@ class DriverDetails {
       'isOnline': isOnline,
       'isBusy': isBusy,
       'currentZone': currentZone,
-      'updatedAt': FieldValue.serverTimestamp(),
+      'updatedAt': DateTime.now().toIso8601String(),
     };
   }
 
