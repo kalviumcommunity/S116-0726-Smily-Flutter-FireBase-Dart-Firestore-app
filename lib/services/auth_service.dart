@@ -132,7 +132,7 @@ class AuthService {
   }
 
   Future<void> signOut() async {
-    await _auth.signOut();che
+    await _auth.signOut();
     _currentUser = null;
     _authStateController.add(null);
   }
