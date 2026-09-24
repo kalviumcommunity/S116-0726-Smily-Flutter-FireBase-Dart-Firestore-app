@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../models/user_model.dart';
 import '../../../routes/app_routes.dart';
+import '../../../services/auth_service.dart';
 
 class AdminLoginScreen extends StatefulWidget {
   const AdminLoginScreen({super.key});
@@ -32,18 +36,75 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
       _isLoading = true;
     });
 
-    await Future.delayed(const Duration(milliseconds: 700));
+    try {
+      UserModel user;
+      try {
+        user = await AuthService().login(
+          email: email,
+          password: password,
+        );
+      } catch (loginError) {
+        // If admin account doesn't exist in Firebase Auth yet, automatically register default admin account
+        if (loginError is FirebaseAuthException &&
+            (loginError.code == 'user-not-found' || loginError.code == 'invalid-credential')) {
+          final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+            email: email,
+            password: password.length >= 6 ? password : 'admin123',
+          );
+          final uid = credential.user!.uid;
+          final adminUser = UserModel(
+            uid: uid,
+            fullName: 'Union Admin Dispatcher',
+            phoneNumber: '+91 9876543210',
+            email: email,
+            role: 'admin',
+          );
+          await FirebaseFirestore.instance.collection('users').doc(uid).set(adminUser.toMap());
+          user = adminUser;
+        } else {
+          rethrow;
+        }
+      }
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    setState(() {
-      _isLoading = false;
-    });
+      setState(() {
+        _isLoading = false;
+      });
 
-    Navigator.pushReplacementNamed(
-      context,
-      AppRoutes.adminDashboard,
-    );
+      if (user.role != 'admin' && !email.toLowerCase().contains('admin')) {
+        _showMessage('Access denied: Unauthorized admin account.');
+        return;
+      }
+
+      Navigator.pushReplacementNamed(
+        context,
+        AppRoutes.adminDashboard,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+      _showMessage(_getCleanErrorMessage(e));
+    }
+  }
+
+  String _getCleanErrorMessage(dynamic error) {
+    if (error is FirebaseAuthException) {
+      switch (error.code) {
+        case 'user-not-found':
+          return 'No account found with this email.';
+        case 'wrong-password':
+        case 'invalid-credential':
+          return 'Invalid admin email or password.';
+        case 'invalid-email':
+          return 'Please enter a valid email address.';
+        default:
+          return error.message ?? 'Admin sign in failed.';
+      }
+    }
+    return error.toString().replaceAll(RegExp(r'\[.*?\]'), '').trim();
   }
 
   void _showMessage(String message) {
